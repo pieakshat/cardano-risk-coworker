@@ -11,10 +11,17 @@ function command(file: string, args: string[], cwd?: string): Promise<string> {
     const child = spawn(file, args, { cwd, env: process.env });
     let stdout = "";
     let stderr = "";
+    const timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      reject(new Error(`${file} timed out`));
+    }, 120_000);
     child.stdout.on("data", (chunk) => { stdout += chunk; });
     child.stderr.on("data", (chunk) => { stderr += chunk; });
-    child.on("error", reject);
-    child.on("close", (code) => code === 0 ? resolve(stdout) : reject(new Error(stderr || `${file} exited ${code}`)));
+    child.on("error", (error) => { clearTimeout(timer); reject(error); });
+    child.on("close", (code) => {
+      clearTimeout(timer);
+      code === 0 ? resolve(stdout) : reject(new Error(stderr || `${file} exited ${code}`));
+    });
   });
 }
 
