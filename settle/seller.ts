@@ -8,21 +8,22 @@ export const SELLER_REQUIREMENTS = {
   scheme: "exact",
   network: "cardano:preprod",
   amount: process.env.SETTLE_PAY_AMOUNT ?? "1000000",
-  asset: process.env.SETTLE_PAY_ASSET ?? "11c93226aabf1e9157620857d9ac013ba111680bd837f62a7ca90214" + "0014df10745553444d",
+  asset: process.env.SETTLE_PAY_ASSET ?? "e16c2dc8ae937e8d3790c7fd7168d7b994621ba14ca11415f39fed72" + "7455534443",
   payTo: SELLER_ADDRESS,
   maxTimeoutSeconds: 900,
-  extra: { assetTransferMethod: "default", confirmationPolicy: { type: "none" } },
+  extra: { assetTransferMethod: "default", confirmationPolicy: { l1Confirmations: 0 } },
 };
 
 export function startSeller(port = SELLER_PORT) {
   if (!SELLER_ADDRESS) throw new Error("SETTLE_SELLER_ADDRESS is required");
-  const provider: CardanoProviderConfig = { koios: { baseUrl: process.env.KOIOS_URL ?? "https://preprod.koios.rest/api/v1", token: process.env.KAIOS_KEY }, requestTimeoutMs: 120_000 };
-  const signer = toFacilitatorCardanoSigner({ network: "cardano:preprod", provider, awaitConfirmation: true });
+  const provider: CardanoProviderConfig = { blockfrost: { baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY_PREPROD }, requestTimeoutMs: 120_000 };
+  const signer = toFacilitatorCardanoSigner({ network: "cardano:preprod", provider, awaitConfirmation: false });
   const facilitator = new x402Facilitator();
   facilitator.register("cardano:preprod", new ExactCardanoScheme(signer));
+  const requiredHeader = Buffer.from(JSON.stringify({ x402Version: 2, accepts: [SELLER_REQUIREMENTS] })).toString("base64");
   const server = Bun.serve({ port, async fetch(request) {
     const payment = request.headers.get("payment-signature");
-    if (!payment) return Response.json({ x402Version: 2, accepts: [SELLER_REQUIREMENTS] }, { status: 402 });
+    if (!payment) return new Response(JSON.stringify({ x402Version: 2, accepts: [SELLER_REQUIREMENTS] }), { status: 402, headers: { "content-type": "application/json", "payment-required": requiredHeader } });
     const payload = JSON.parse(Buffer.from(payment, "base64").toString("utf8"));
     const verified = await facilitator.verify(payload, SELLER_REQUIREMENTS as never);
     if (!verified.isValid) return Response.json({ error: verified.invalidReason ?? "payment refused" }, { status: 402 });

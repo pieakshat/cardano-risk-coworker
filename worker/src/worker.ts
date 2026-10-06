@@ -18,6 +18,23 @@ const run = (args: string[]) => new Promise<string>((resolve, reject) => {
   child.on("close", (code) => code === 0 ? resolve(out) : reject(new Error(err || `sokosumi exited ${code}`)));
 });
 
+const settlement = (input: string) => {
+  const match = input.match(/^pay\s+(\d+)\s+(\S+)\s+to\s+(\S+)\s+from\s+(\S+)$/i);
+  if (!match) throw new Error('Settlement Task must match: pay <N> <asset> to <x402 url> from <asset>');
+  const [, amount, asset, sellerUrl, holdAsset] = match;
+  return new Promise<string>((resolve, reject) => {
+    const child = spawn("bun", [new URL("../../settle/run.ts", import.meta.url).pathname], {
+      cwd: new URL("../../", import.meta.url).pathname,
+      env: { ...process.env, SETTLE_PAY_AMOUNT: amount, SETTLE_PAY_ASSET: asset, SETTLE_SELLER_URL: sellerUrl, SETTLE_HOLD_ASSET: holdAsset },
+    });
+    let out = "";
+    let err = "";
+    child.stdout.on("data", (chunk) => { out += chunk; });
+    child.stderr.on("data", (chunk) => { err += chunk; });
+    child.on("close", (code) => code === 0 ? resolve(out) : reject(new Error(err || out || `settlement exited ${code}`)));
+  });
+};
+
 const core = (path: string, init: RequestInit = {}) => fetch(`${env("SOKOSUMI_API_URL", "https://api.preprod.sokosumi.com/v1")}${path}`, {
   ...init,
   headers: { authorization: `Bearer ${env("SOKOSUMI_COWORKER_API_KEY")}`, "content-type": "application/json", ...(init.headers ?? {}) },
@@ -49,12 +66,15 @@ async function once(): Promise<void> {
     const id = String(task.id);
     const input = taskInput(task);
     if (!input) throw new Error(`Task ${id} has no token input`);
-    const payment = env("ENABLE_MPS_PAYMENTS") === "true" ? await createPayment(input) : null;
+    const isSettlement = /^pay\s+/i.test(input);
+    const payment = !isSettlement && env("ENABLE_MPS_PAYMENTS") === "true" ? await createPayment(input) : null;
     await taskEvent(id, { status: "RUNNING", ...(payment ? { masumiPayment: payment.data ?? payment } : {}) });
     if (payment) await waitForPayment(payment);
-    const report = await analyze(input);
-    const memo = await writeMemo(report);
-    const result = `${memo.markdown}\n\n--- risk-report.json ---\n${JSON.stringify(memo.json, null, 2)}\n`;
+    const result = isSettlement ? await settlement(input) : await (async () => {
+      const report = await analyze(input);
+      const memo = await writeMemo(report);
+      return `${memo.markdown}\n\n--- risk-report.json ---\n${JSON.stringify(memo.json, null, 2)}\n`;
+    })();
     await mkdir("results", { recursive: true });
     await writeFile(`results/${id}.txt`, result, "utf8");
     if (payment) await submitResult(payment, result);

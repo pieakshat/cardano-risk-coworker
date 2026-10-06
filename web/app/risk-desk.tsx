@@ -25,6 +25,7 @@ type Report = {
 };
 
 type ApiResult = { markdown: string; json: Report } | { error: string };
+type SettlementRun = { status: string; result?: { orderTx: string; fillTx: string; paymentTx: string; quotedInput: string; rate: string; timingsMs: { orderToSubmitted: number; fill: number } } };
 
 export default function RiskDesk() {
   const [input, setInput] = useState("");
@@ -32,6 +33,9 @@ export default function RiskDesk() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [phase, setPhase] = useState(0);
+  const [settlement, setSettlement] = useState<SettlementRun | null>(null);
+
+  useEffect(() => { fetch("/api/settle/latest").then((response) => response.json()).then(setSettlement).catch(() => setSettlement({ status: "unavailable" })); }, []);
 
   const checks = ["identity", "minting", "holders", "liquidity"];
   useEffect(() => {
@@ -108,9 +112,18 @@ export default function RiskDesk() {
         <p className={styles.kicker}>THE READ</p>
         <div className={styles.methodGrid}><h2>Facts first. Verdict second.</h2><p>The verdict is fixed by the report rules. The memo only explains the evidence, so the important numbers stay traceable to their source calls.</p></div>
       </section>
+      <SettlementPanel run={settlement} />
       <footer className={styles.footer} id="sources"><span>Cardano Risk Analyst</span><span>Koios mainnet · Minswap · Cardano token registry</span></footer>
     </main>
   );
+}
+
+function SettlementPanel({ run }: { run: SettlementRun | null }) {
+  const result = run?.result;
+  return <section className={styles.settlement} aria-labelledby="settle-title">
+    <div><p className={styles.kicker}>SETTLEMENT DESK · PREPROD</p><h2 id="settle-title">Settle a payment</h2><p className={styles.settlementLead}>Quote the seller’s asset from what you hold, then route the Minswap fill into an x402 payment.</p><p className={styles.refusal}><strong>Refusal rule</strong> Stop before signing when price impact exceeds 3% or the configured mainnet twin is HIGH risk.</p></div>
+    <div className={styles.settlementData}><div><span>Latest quote</span><strong>{result ? `${result.quotedInput} lovelace → 10,000 tUSDC` : "Waiting for a verified run"}</strong><small>{result ? `${result.rate} actual rate` : "ADA against live preprod reserves"}</small></div><div><span>Latest real run</span>{result ? <><strong>200 from local x402 seller</strong><small>{result.timingsMs.fill} ms order to fill, {result.timingsMs.orderToSubmitted} ms total</small><nav className={styles.txLinks}><a href={`https://preprod.cardanoscan.io/transaction/${result.orderTx}`}>order</a><a href={`https://preprod.cardanoscan.io/transaction/${result.fillTx}`}>fill</a><a href={`https://preprod.cardanoscan.io/transaction/${result.paymentTx}`}>payment</a></nav></> : <small>{run?.status === "pending" ? "Run is being recorded" : "No completed run recorded"}</small>}</div></div>
+  </section>;
 }
 
 function ReportView({ report, redFlag, onReset, onRerun }: { report: Report; redFlag?: Finding; onReset: () => void; onRerun: () => void }) {

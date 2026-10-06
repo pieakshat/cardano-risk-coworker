@@ -1,0 +1,7 @@
+{
+  "startedAt": "2026-10-06T11:48:48.931Z",
+  "status": "failed",
+  "error": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()",
+  "finishedAt": "2026-10-06T11:49:23.240Z",
+  "elapsedMs": 34309
+}

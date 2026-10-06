@@ -2,11 +2,11 @@ import { analyze } from "../engine/engine.ts";
 
 export const PREPROD_KOIOS = "https://preprod.koios.rest/api/v1";
 export const MINSWAP_V2_POOL = "addr_test1zrtt4xm4p84vse3g3l6swtf2rqs943t0w39ustwdszxt3l5rajt8r8wqtygrfduwgukk73m5gcnplmztc5tl5ngy0upqhns793";
-export const TUSDM_UNIT = "11c93226aabf1e9157620857d9ac013ba111680bd837f62a7ca90214" + "0014df10745553444d";
+export const TUSDC_UNIT = "e16c2dc8ae937e8d3790c7fd7168d7b994621ba14ca11415f39fed72" + "7455534443";
 const ADA = "lovelace";
 
 export type QuoteInput = { holdAsset: string; payAsset: string; payAmount: string | bigint; maxPriceImpactPct?: number; highRiskVerdict?: "HIGH" | "MEDIUM" | "LOW" };
-export type PoolReserves = { txHash: string; txIndex: number; holdReserve: bigint; payReserve: bigint; feeNumerator: bigint; feeDenominator: bigint };
+export type PoolReserves = { txHash: string; txIndex: number; holdReserve: bigint; payReserve: bigint; feeNumerator: bigint; feeDenominator: bigint; lpAsset: { policyId: string; tokenName: string } };
 
 const unit = (asset: string) => asset === "ADA" || asset === "lovelace" ? ADA : asset.toLowerCase().replace(".", "");
 const ceilDiv = (a: bigint, b: bigint) => (a + b - 1n) / b;
@@ -36,16 +36,22 @@ function reserve(row: any, wanted: string): bigint {
   return BigInt(row.asset_list?.find((x: any) => `${x.policy_id}${x.asset_name}`.toLowerCase() === wanted)?.quantity ?? 0);
 }
 
+function lpAsset(row: any): { policyId: string; tokenName: string } | undefined {
+  const asset = row.asset_list?.find((x: any) => x.policy_id === "d6aae2059baee188f74917493cf7637e679cd219bdfbbf4dcbeb1d0b" && x.asset_name !== "4d5350");
+  return asset ? { policyId: asset.policy_id, tokenName: asset.asset_name } : undefined;
+}
+
 export async function readPoolReserves(holdAsset: string, payAsset: string): Promise<PoolReserves> {
-  const rows = await koios("/address_utxos", { method: "POST", body: JSON.stringify({ _addresses: [MINSWAP_V2_POOL] }) }) as any[];
+  const rows = await koios("/address_utxos", { method: "POST", body: JSON.stringify({ _addresses: [MINSWAP_V2_POOL], _extended: true }) }) as any[];
   const hold = unit(holdAsset); const pay = unit(payAsset);
-  const row = rows.find((candidate) => reserve(candidate, hold) > 0n && reserve(candidate, pay) > 0n && candidate.inline_datum);
+  const candidates = rows.filter((candidate) => reserve(candidate, hold) > 0n && reserve(candidate, pay) > 0n && candidate.inline_datum && lpAsset(candidate));
+  const row = candidates.sort((a, b) => reserve(b, pay) > reserve(a, pay) ? 1 : reserve(b, pay) < reserve(a, pay) ? -1 : 0)[0];
   if (!row) throw new Error(`no live Minswap V2 preprod pool for ${holdAsset}/${payAsset}`);
   const fields = row.inline_datum?.value?.fields ?? [];
   const feeNumerator = BigInt(fields.at(-3)?.int ?? 30);
   const feeDenominator = 10_000n;
   const holdReserve = reserve(row, hold); const payReserve = reserve(row, pay);
-  return { txHash: row.tx_hash, txIndex: Number(row.tx_index), holdReserve, payReserve, feeNumerator, feeDenominator };
+  return { txHash: row.tx_hash, txIndex: Number(row.tx_index), holdReserve, payReserve, feeNumerator, feeDenominator, lpAsset: lpAsset(row)! };
 }
 
 function mainnetTwin(asset: string): string | undefined {
@@ -67,6 +73,6 @@ export async function quote(input: QuoteInput) {
 }
 
 if (import.meta.main) {
-  const [holdAsset = "ADA", payAsset = TUSDM_UNIT, payAmount = "1000000"] = Bun.argv.slice(2);
+  const [holdAsset = "ADA", payAsset = TUSDC_UNIT, payAmount = "10000"] = Bun.argv.slice(2);
   console.log(JSON.stringify(await quote({ holdAsset, payAsset, payAmount }), (_, value) => typeof value === "bigint" ? value.toString() : value, 2));
 }
