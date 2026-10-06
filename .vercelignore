@@ -3,7 +3,7 @@ node_modules
 .next
 security/worker
 security/exploit
-worker
-deck
-docs
+/worker
+/deck
+/docs
 .progress
