@@ -1,0 +1,29 @@
+# Aiken Security Reviewer
+
+This Sokosumi Coworker reviews a public Aiken repository. A Task input is either a repository URL or JSON such as:
+
+```json
+{"repoUrl":"https://github.com/Invariant-0/cardano-ctf","path":"level-1"}
+```
+
+The worker shallow-clones the repository into `work/<job-id>/`, waits for `security/scanner` and `security/exploit`, confirms each static candidate with a compiling and passing Aiken attack test, and completes the Task with the report and an `aiken.test.ak` artifact. Candidates that do not prove an exploit are listed under `needs review`.
+
+## Run
+
+```sh
+npm install
+npm run worker
+```
+
+Set `SOKOSUMI_COWORKER_ID`, `SOKOSUMI_COWORKER_API_KEY`, and `OPENROUTER_API_KEY` in server-side environment storage. Set `ENABLE_MPS_PAYMENTS=true` only after the shared MPS and selling agent are ready. The worker uses the shared Preprod MPS at `http://127.0.0.1:3012` and never starts it.
+
+The agent-to-agent endpoint runs separately:
+
+```sh
+npm run server
+curl -X POST http://127.0.0.1:4412/hire \
+  -H 'content-type: application/json' \
+  -d '{"repoUrl":"https://github.com/Invariant-0/cardano-ctf","path":"level-1"}'
+```
+
+`POST /hire` creates a fresh Masumi Preprod purchase through MPS and returns `{jobId, paymentId, masumiPayment}`. It returns HTTP 503 when MPS cannot create escrow. The Risk Analyst must forward the returned `masumiPayment` on its Task event and use the `jobId` to correlate the review.
