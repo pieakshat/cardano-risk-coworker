@@ -21,7 +21,7 @@ const requirement = {
   asset: kind === "A" ? "lovelace" : token.unit,
   payTo,
   maxTimeoutSeconds: 600,
-  extra: {},
+  extra: { confirmationPolicy: { l1Confirmations: 0 } },
 };
 const resource = { url: `http://127.0.0.1:${port}/`, description: `Risk Desk demo seller ${kind}`, mimeType: "application/json" };
 const facilitator = new x402Facilitator();
@@ -30,12 +30,8 @@ facilitator.register("cardano:preprod", new ExactCardanoScheme(toFacilitatorCard
 async function settle(header: string): Promise<string> {
   const payment = decodePaymentSignatureHeader(header);
   const deadline = Date.now() + 240_000;
-  let verified;
-  for (;;) {
-    verified = await facilitator.verify(payment as never, requirement as never);
-    if (verified.isValid || verified.invalidReason !== "exact_cardano_facilitator_evidence_unavailable" || Date.now() >= deadline) break;
-    await Bun.sleep(5_000);
-  }
+  // Canonical inclusion, as in the Risk Desk route; the agent confirms every hash on Koios before recording it.
+  const verified = await facilitator.verify(payment as never, requirement as never);
   if (!verified.isValid) throw new Error(`payment rejected: ${verified.invalidReason ?? "invalid"}`);
   for (;;) {
     const settled = await facilitator.settle(payment as never, requirement as never);

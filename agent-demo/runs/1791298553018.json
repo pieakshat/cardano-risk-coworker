@@ -1,0 +1,183 @@
+{
+  "network": "preprod",
+  "riskDesk": "http://127.0.0.1:4402/api/x402/risk-check",
+  "token": {
+    "unit": "005f2a99da173eb3b0cba915124246d9ab19e9e76251723f6db00fdd5249534b",
+    "policyId": "005f2a99da173eb3b0cba915124246d9ab19e9e76251723f6db00fdd",
+    "assetNameHex": "5249534b",
+    "sellerAddress": "addr_test1qqr8xmvgjcfngdxnj924u35xnatv6q9p3v49n7dfrku2jux0ugjdww2n8ayaf4cyf7cp2we5c5gzr4vfkhv9ch5c4u7qymqwtl",
+    "mintTx": "6ac7f3f4d25d8287760c57a5e279d73610f22fddddae5ef75afd23f1ec87e32b"
+  },
+  "steps": [
+    {
+      "step": "mint",
+      "mintTx": "6ac7f3f4d25d8287760c57a5e279d73610f22fddddae5ef75afd23f1ec87e32b",
+      "unit": "005f2a99da173eb3b0cba915124246d9ab19e9e76251723f6db00fdd5249534b",
+      "sellerAddress": "addr_test1qqr8xmvgjcfngdxnj924u35xnatv6q9p3v49n7dfrku2jux0ugjdww2n8ayaf4cyf7cp2we5c5gzr4vfkhv9ch5c4u7qymqwtl"
+    },
+    {
+      "step": "seller_quote",
+      "seller": "A",
+      "status": 402,
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "cardano:preprod",
+          "amount": "2000000",
+          "asset": "lovelace",
+          "payTo": "addr_test1qqe0seqy6tvff79kw3md5qdspevu59344rcna6fjsut5npeg2wdkgff976cth4upph2h0g9394tl6n0arnwqs307dyaq5lhh68",
+          "maxTimeoutSeconds": 600,
+          "extra": {
+            "confirmationPolicy": {
+              "l1Confirmations": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "step": "risk_check",
+      "seller": "A",
+      "paymentTx": "fc053ce1c90ce352c944dff8afd5519d422b7995015302f1ea9f4afbc1246a31",
+      "assessment": {
+        "decision": "INTERACT",
+        "evidenceScore": 100,
+        "blockingReasons": [],
+        "conditions": [],
+        "evidence": [
+          {
+            "rule": "counterparty-credential",
+            "value": "key",
+            "source": "https://preprod.koios.rest/api/v1/address_info"
+          },
+          {
+            "rule": "counterparty-tx-count",
+            "value": "27",
+            "source": "https://preprod.koios.rest/api/v1/address_txs"
+          },
+          {
+            "rule": "counterparty-first-seen",
+            "value": "2026-10-05T04:41:58.000Z",
+            "source": "https://preprod.koios.rest/api/v1/address_txs"
+          },
+          {
+            "rule": "amount-within-cap",
+            "value": "2000000/10000000",
+            "source": "caller-supplied maxAmount"
+          },
+          {
+            "rule": "resource-loopback",
+            "value": "http://127.0.0.1:4402/api/x402/risk-check",
+            "source": "browser secure-context loopback exemption"
+          },
+          {
+            "rule": "asset-mint-policy",
+            "value": "lovelace",
+            "source": "Cardano native asset"
+          }
+        ],
+        "subject": {
+          "kind": "x402_payment",
+          "network": "preprod",
+          "payTo": "addr_test1qqe0seqy6tvff79kw3md5qdspevu59344rcna6fjsut5npeg2wdkgff976cth4upph2h0g9394tl6n0arnwqs307dyaq5lhh68",
+          "asset": "lovelace",
+          "amount": "2000000",
+          "resource": "http://127.0.0.1:4402/api/x402/risk-check"
+        },
+        "checkedAt": "2026-10-06T14:53:49.581Z",
+        "termsHash": "58d18d5607901c99baa43b5c61179bcd48ab5a512b39add2690845726da15515"
+      }
+    },
+    {
+      "step": "seller_payment",
+      "seller": "A",
+      "paymentTx": "3866ed31eb44b4278abfdb897c377e3d69a6d5c9e8649df8a966ba11d252659a"
+    },
+    {
+      "step": "seller_quote",
+      "seller": "B",
+      "status": 402,
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "cardano:preprod",
+          "amount": "5",
+          "asset": "005f2a99da173eb3b0cba915124246d9ab19e9e76251723f6db00fdd5249534b",
+          "payTo": "addr_test1qqr8xmvgjcfngdxnj924u35xnatv6q9p3v49n7dfrku2jux0ugjdww2n8ayaf4cyf7cp2we5c5gzr4vfkhv9ch5c4u7qymqwtl",
+          "maxTimeoutSeconds": 600,
+          "extra": {
+            "confirmationPolicy": {
+              "l1Confirmations": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "step": "risk_check",
+      "seller": "B",
+      "paymentTx": "fad4fce27239cd0850bfa49100bebf00064780e9e908f4b61166d3461784a1ad",
+      "assessment": {
+        "decision": "DO_NOT_INTERACT",
+        "evidenceScore": 40,
+        "blockingReasons": [
+          "asset-mint-open"
+        ],
+        "conditions": [
+          "counterparty-first-seen",
+          "counterparty-tx-count"
+        ],
+        "evidence": [
+          {
+            "rule": "counterparty-credential",
+            "value": "key",
+            "source": "https://preprod.koios.rest/api/v1/address_info"
+          },
+          {
+            "rule": "counterparty-tx-count",
+            "value": "1",
+            "source": "https://preprod.koios.rest/api/v1/address_txs"
+          },
+          {
+            "rule": "counterparty-first-seen",
+            "value": "2026-10-06T12:43:21.000Z",
+            "source": "https://preprod.koios.rest/api/v1/address_txs"
+          },
+          {
+            "rule": "amount-within-cap",
+            "value": "5/10000000",
+            "source": "caller-supplied maxAmount"
+          },
+          {
+            "rule": "resource-loopback",
+            "value": "http://127.0.0.1:4402/api/x402/risk-check",
+            "source": "browser secure-context loopback exemption"
+          },
+          {
+            "rule": "asset-mint-policy",
+            "value": "005f2a99da173eb3b0cba915124246d9ab19e9e76251723f6db00fdd:open",
+            "source": "https://preprod.koios.rest/api/v1/asset_info"
+          }
+        ],
+        "subject": {
+          "kind": "x402_payment",
+          "network": "preprod",
+          "payTo": "addr_test1qqr8xmvgjcfngdxnj924u35xnatv6q9p3v49n7dfrku2jux0ugjdww2n8ayaf4cyf7cp2we5c5gzr4vfkhv9ch5c4u7qymqwtl",
+          "asset": "005f2a99da173eb3b0cba915124246d9ab19e9e76251723f6db00fdd5249534b",
+          "amount": "5",
+          "resource": "http://127.0.0.1:4402/api/x402/risk-check"
+        },
+        "checkedAt": "2026-10-06T14:55:25.895Z",
+        "termsHash": "1ed1d34177506b0f887d1c9bbb7e40daa4b2f51f67c6fa202320edce280f94d6"
+      }
+    },
+    {
+      "step": "seller_refused",
+      "seller": "B",
+      "reason": [
+        "asset-mint-open"
+      ]
+    }
+  ],
+  "narration": "The risk assessment approved seller A’s 2 000 000 lovelace quote, granting an INTERACT decision with a perfect evidence score and enabling the subsequent payment. In contrast, seller B’s request to receive 5 units of the newly minted token was denied; the risk check returned DO_NOT_INTERACT, citing an open asset‑mint policy and insufficient counterparty history as blocking reasons. Consequently, seller B was not paid, and the transaction was refused."
+}
