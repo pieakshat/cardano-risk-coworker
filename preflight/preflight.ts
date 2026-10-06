@@ -51,6 +51,15 @@ function scriptHash(address: string): string | undefined {
   return Buffer.from(bytes.slice(1, 29)).toString("hex");
 }
 
+function loopbackResource(resource: string): boolean {
+  try {
+    const hostname = new URL(resource).hostname.toLowerCase();
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]" || hostname === "::1";
+  } catch {
+    return false;
+  }
+}
+
 async function paymentFacts(input: PaymentInput, deps: Required<PreflightDeps>): Promise<PaymentFacts> {
   const network = input.network.slice("cardano:".length) as "mainnet" | "preprod";
   const body = JSON.stringify({ _addresses: [input.payTo] });
@@ -86,7 +95,10 @@ function assessPayment(input: PaymentInput, facts: PaymentFacts, now: string): A
   const maxAmount = BigInt(input.maxAmount);
   evidence.push({ rule: "amount-within-cap", value: `${input.amount}/${input.maxAmount}`, source: "caller-supplied maxAmount" });
   if (amount > maxAmount) { blockingReasons.push("amount-over-cap"); ruleIds.push("amount-over-cap"); }
-  if (input.resource && !input.resource.startsWith("https://")) { blockingReasons.push("resource-not-https"); ruleIds.push("resource-not-https"); }
+  if (input.resource && !input.resource.startsWith("https://")) {
+    if (loopbackResource(input.resource)) evidence.push({ rule: "resource-loopback", value: input.resource, source: "browser secure-context loopback exemption" });
+    else { blockingReasons.push("resource-not-https"); ruleIds.push("resource-not-https"); }
+  }
   if (input.maxTimeoutSeconds !== undefined && (input.maxTimeoutSeconds <= 0 || input.maxTimeoutSeconds > 3600)) { conditions.push("timeout-insane"); ruleIds.push("timeout-insane"); }
   if (input.asset && input.asset !== "lovelace") {
     const policy = facts.asset?.policy_id;

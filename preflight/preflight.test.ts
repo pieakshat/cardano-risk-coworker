@@ -38,3 +38,14 @@ test("amount over cap blocks", async () => {
   expect(assessment.decision).toBe("DO_NOT_INTERACT");
   expect(assessment.blockingReasons).toContain("amount-over-cap");
 });
+
+test("loopback HTTP is exempt and recorded", async () => {
+  const assessment = await preflight({ type: "x402_payment", network: "cardano:preprod", payTo: established, amount: "2000000", maxAmount: "5000000", resource: "http://127.0.0.1:4403/", maxTimeoutSeconds: 600 }, deps);
+  expect(assessment.blockingReasons).not.toContain("resource-not-https");
+  expect(assessment.evidence).toContainEqual(expect.objectContaining({ rule: "resource-loopback" }));
+});
+
+test.each(["http://example.com/", "http://127.0.0.1.evil.com/"])("public HTTP resource blocks: %s", async (resource) => {
+  const assessment = await preflight({ type: "x402_payment", network: "cardano:preprod", payTo: established, amount: "2000000", maxAmount: "5000000", resource, maxTimeoutSeconds: 600 }, deps);
+  expect(assessment.blockingReasons).toContain("resource-not-https");
+});

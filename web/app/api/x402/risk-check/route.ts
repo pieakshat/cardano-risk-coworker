@@ -29,19 +29,22 @@ function paymentRequired(request: Request): Response {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null) as { target?: unknown; x402?: { payTo?: unknown }; resource?: unknown } | null;
-  const target = typeof body?.target === "string" ? body.target.trim() : typeof body?.x402?.payTo === "string" ? body.x402.payTo : "";
+  const body = await request.json().catch(() => null) as { target?: unknown; x402?: Record<string, unknown>; resource?: unknown } | null;
+  const sellerRequirements = body?.x402;
+  const target = typeof body?.target === "string" ? body.target.trim() : typeof sellerRequirements?.payTo === "string" ? sellerRequirements.payTo : "";
   if (!target) return NextResponse.json({ error: "target is required" }, { status: 400 });
   const paymentHeader = request.headers.get("payment-signature");
   if (!paymentHeader) return paymentRequired(request);
 
   try {
-    const required = { ...requirements, resource: body?.resource ?? new URL(request.url).toString() };
-    const settled = await settleOnce(paymentHeader, required);
+    const riskRequirements = { ...requirements, resource: new URL(request.url).toString() };
+    const sellerTerms = sellerRequirements ?? { ...requirements, payTo: target };
+    const resource = body?.resource ?? new URL(request.url).toString();
+    const settled = await settleOnce(paymentHeader, riskRequirements);
     if (settled.cached) {
       return NextResponse.json(settled.cached.assessment, { headers: { "PAYMENT-RESPONSE": encodePaymentResponseHeader(settled.cached.paymentResponse as never) } });
     }
-    const assessment = await assessRisk(target, required.resource, required);
+    const assessment = await assessRisk(resource, sellerTerms);
     await recordDelivery(settled.txId, assessment, settled.paymentResponse);
     return NextResponse.json(assessment, { headers: { "PAYMENT-RESPONSE": encodePaymentResponseHeader(settled.paymentResponse as never) } });
   } catch (error) {

@@ -4,6 +4,11 @@ import { toFacilitatorCardanoSigner } from "@x402/cardano";
 import { ExactCardanoScheme } from "@x402/cardano/exact/facilitator";
 import { readFileSync } from "node:fs";
 
+const koiosUrl = "https://preprod.koios.rest/api/v1";
+const koiosKey = process.env.KAIOS_KEY;
+const originalFetch = globalThis.fetch;
+if (koiosKey) globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => { const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url; if (!url.startsWith(koiosUrl)) return originalFetch(input, init); const headers = new Headers(init?.headers); headers.set("Authorization", `Bearer ${koiosKey}`); return originalFetch(input, { ...init, headers }); }) as typeof fetch;
+
 const port = Number(process.env.PORT ?? (process.argv[2] === "b" ? 4404 : 4403));
 const token = JSON.parse(readFileSync(new URL("./token.json", import.meta.url), "utf8")) as { unit: string; sellerAddress: string; mintTx: string };
 const kind = process.argv[2] === "b" ? "B" : "A";
@@ -20,13 +25,18 @@ const requirement = {
 };
 const resource = { url: `http://127.0.0.1:${port}/`, description: `Risk Desk demo seller ${kind}`, mimeType: "application/json" };
 const facilitator = new x402Facilitator();
-facilitator.register("cardano:preprod", new ExactCardanoScheme(toFacilitatorCardanoSigner({ network: "cardano:preprod", provider: { koios: { baseUrl: "https://preprod.koios.rest/api/v1" }, requestTimeoutMs: 120_000 } })));
+facilitator.register("cardano:preprod", new ExactCardanoScheme(toFacilitatorCardanoSigner({ network: "cardano:preprod", provider: { koios: { baseUrl: koiosUrl, token: koiosKey }, requestTimeoutMs: 120_000 } })));
 
 async function settle(header: string): Promise<string> {
   const payment = decodePaymentSignatureHeader(header);
-  const verified = await facilitator.verify(payment as never, requirement as never);
-  if (!verified.isValid) throw new Error(`payment rejected: ${verified.invalidReason ?? "invalid"}`);
   const deadline = Date.now() + 240_000;
+  let verified;
+  for (;;) {
+    verified = await facilitator.verify(payment as never, requirement as never);
+    if (verified.isValid || verified.invalidReason !== "exact_cardano_facilitator_evidence_unavailable" || Date.now() >= deadline) break;
+    await Bun.sleep(5_000);
+  }
+  if (!verified.isValid) throw new Error(`payment rejected: ${verified.invalidReason ?? "invalid"}`);
   for (;;) {
     const settled = await facilitator.settle(payment as never, requirement as never);
     if (settled.success) return settled.transaction;
@@ -40,7 +50,7 @@ function challenge(): Response {
   return new Response(JSON.stringify(body), { status: 402, headers: { "content-type": "application/json", "PAYMENT-REQUIRED": encodePaymentRequiredHeader(body as never) } });
 }
 
-Bun.serve({ port, async fetch(request) {
+Bun.serve({ port, idleTimeout: 255, async fetch(request) {
   if (request.method !== "GET" || new URL(request.url).pathname !== "/") return new Response("not found", { status: 404 });
   const header = request.headers.get("payment-signature");
   if (!header) return challenge();
