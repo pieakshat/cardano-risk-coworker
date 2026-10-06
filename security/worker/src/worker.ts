@@ -6,6 +6,7 @@ import { review } from "./review.ts";
 
 loadEnv();
 type RecordValue = Record<string, unknown>;
+const forbiddenCoworker = "01a10fef-17cf-77b9-88f5-fe9e28243885";
 
 const core = (path: string, init: RequestInit = {}) => fetch(`${env("SOKOSUMI_API_URL", "https://api.preprod.sokosumi.com/v1")}${path}`, {
   ...init,
@@ -61,6 +62,7 @@ async function once(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  if (env("SOKOSUMI_COWORKER_ID") === forbiddenCoworker) throw new Error("submission-1 Coworker is forbidden");
   await once();
   setInterval(() => once().catch((error) => console.error(error instanceof Error ? error.message : error)), Number(env("POLL_SECONDS", "15")) * 1000);
 }

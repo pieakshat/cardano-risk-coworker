@@ -3,11 +3,15 @@ import { env } from "./config.ts";
 
 export type Payment = Record<string, unknown>;
 
-const mps = (path: string, init: RequestInit = {}) => fetch(`${env("MPS_URL", "http://127.0.0.1:3013/api/v1")}${path}`, {
+const mps = (path: string, init: RequestInit = {}) => {
+  const base = env("MPS_URL", "http://127.0.0.1:3013/api/v1");
+  if (base.includes(":3012/")) throw new Error("submission-1 MPS is forbidden");
+  return fetch(`${base}${path}`, {
   ...init,
   headers: { "content-type": "application/json", token: env("MPS_API_TOKEN"), ...(init.headers ?? {}) },
   signal: AbortSignal.timeout(20_000),
-});
+  });
+};
 
 async function json(path: string, init: RequestInit = {}): Promise<Payment> {
   const response = await mps(path, init);
