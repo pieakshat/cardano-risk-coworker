@@ -1,0 +1,15 @@
+{
+  "name": "cardano-risk-coworker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test test/*.test.ts",
+    "worker": "node --import tsx src/worker.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4"
+  }
+}

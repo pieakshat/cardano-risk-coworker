@@ -1,0 +1,4 @@
+.env.local
+SETUP-RECORD.md
+results/
+node_modules/
