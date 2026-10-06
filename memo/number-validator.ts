@@ -1,4 +1,4 @@
-const numberPattern = /\b\d+(?:\.\d+)?\b/g;
+const numberPattern = /\b\d[\d,]*(?:\.\d+)?\b/g;
 
 export function numbersIn(value: string): string[] {
   return value.match(numberPattern) ?? [];
