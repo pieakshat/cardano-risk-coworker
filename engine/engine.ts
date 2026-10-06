@@ -8,10 +8,25 @@ const now = () => new Date().toISOString();
 const MAINNET_SYSTEM_START = Date.parse("2020-07-29T21:44:51Z");
 const registryValue = (value: any) => value && typeof value === "object" && "value" in value ? value.value : value;
 
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+
+// ponytail: file cache keyed by URL+body, 6h TTL; Koios asset_addresses takes ~55 s for large tokens (measured on MIN), so repeat Tasks must not refetch
+const CACHE_DIR = new URL("./cache/", import.meta.url).pathname;
+const CACHE_TTL_MS = 6 * 3600_000;
 const json = async (fetcher: Fetcher, url: string, init?: RequestInit) => {
-  const response = await fetcher(url, { ...init, signal: AbortSignal.timeout(30_000) });
+  const key = createHash("sha256").update(url + String(init?.body ?? "")).digest("hex").slice(0, 32);
+  const file = `${CACHE_DIR}${key}.json`;
+  if (fetcher === fetch && existsSync(file)) {
+    const hit = JSON.parse(readFileSync(file, "utf8"));
+    if (Date.now() - hit.at < CACHE_TTL_MS) return hit.body;
+  }
+  const slow = url.includes("/asset_addresses");
+  const response = await fetcher(url, { ...init, signal: AbortSignal.timeout(slow ? 120_000 : 30_000) });
   if (!response.ok) throw new Error(`${url} returned HTTP ${response.status}`);
-  return response.json() as Promise<any>;
+  const body = await response.json();
+  if (fetcher === fetch) { mkdirSync(CACHE_DIR, { recursive: true }); writeFileSync(file, JSON.stringify({ at: Date.now(), body })); }
+  return body;
 };
 
 function hexAscii(value: string): string {
@@ -93,7 +108,7 @@ async function holders(ctx: Context, policyId: string, assetName: string) {
   for (let page = 0; page < RULES.holderPageCap; page++) {
     const start = page * RULES.holderPageSize;
     const end = start + RULES.holderPageSize - 1;
-    const batch = await request(ctx, `asset_addresses_${policyId}_${assetName}_${page}`, `${KOIOS}/asset_addresses?_asset_policy=${policyId}&_asset_name=${assetName}&order=payment_address.asc`, { headers: { Range: `${start}-${end}` } });
+    const batch = await request(ctx, `asset_addresses_${policyId}_${assetName}_${page}`, `${KOIOS}/asset_addresses?_asset_policy=${policyId}&_asset_name=${assetName}`, { headers: { Range: `${start}-${end}` } });
     if (!Array.isArray(batch) || batch.length === 0) break;
     rows.push(...batch);
     if (batch.length < RULES.holderPageSize) break;
@@ -129,7 +144,7 @@ export async function analyzeWith(fetcher: Fetcher, input: string, fixtureDir?: 
     pools(ctx, resolved.unit),
   ]);
   const supply = BigInt(asset.total_supply ?? 0);
-  const concentration = holderConcentration(addressRows.map((row: any) => ({ address: String(row.payment_address ?? row.address ?? ""), quantity: BigInt(row.quantity ?? 0) })), supply);
+  const concentration = { ...holderConcentration(addressRows.map((row: any) => ({ address: String(row.payment_address ?? row.address ?? ""), quantity: BigInt(row.quantity ?? 0) })), supply), sampled: addressRows.length >= RULES.holderPageSize * RULES.holderPageCap };
   const liquidity = poolRows as RiskReport["liquidity"]["pools"];
   const identity = registry && typeof registry === "object" && registry.name ? { registryName: registryValue(registry.name), ticker: registryValue(registry.ticker), decimals: registryValue(registry.decimals), url: registryValue(registry.url), inRegistry: true } : { inRegistry: false };
   const findings: Finding[] = [];

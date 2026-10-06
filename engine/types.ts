@@ -11,7 +11,7 @@ export type RiskReport = {
   identity: { registryName?: string; ticker?: string; decimals?: number; url?: string; inRegistry: boolean };
   policy: { scriptType: "native" | "plutus" | "unknown"; timelockedBefore?: string; requiredSigners: number; mintOpen: boolean };
   supply: { total: string; mintTxCount: number; burnTxCount: number; lastMintAt?: string };
-  holders: { count: number; top1Pct: number; top10Pct: number; scriptHeldPct: number };
+  holders: { count: number; top1Pct: number; top10Pct: number; scriptHeldPct: number; sampled: boolean };
   liquidity: { pools: Array<{ dex: string; tvlAda: number; pair: string }>; totalTvlAda: number };
   activity: { tx24h?: number; firstSeen: string };
   findings: Finding[];

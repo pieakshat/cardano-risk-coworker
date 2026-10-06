@@ -4,7 +4,7 @@ export const RULES = {
   lowLiquidityAda: 10_000,
   youngTokenDays: 30,
   holderPageSize: 1000,
-  holderPageCap: 5,
+  holderPageCap: 1,
 } as const;
 
 export function verdict(findings: Array<{ severity: string }>): "LOW" | "MEDIUM" | "HIGH" {
