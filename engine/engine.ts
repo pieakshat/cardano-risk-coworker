@@ -14,7 +14,7 @@ import { createHash } from "node:crypto";
 import { resolve as pathResolve } from "node:path";
 
 // ponytail: file cache keyed by URL+body, 6h TTL; Koios asset_addresses takes ~55 s for large tokens (measured on MIN), so repeat Tasks must not refetch
-const CACHE_DIR = `${process.cwd().endsWith("/web") ? pathResolve(process.cwd(), "../engine/cache") : pathResolve(process.cwd(), "engine/cache")}/`;
+const CACHE_DIR = process.env.VERCEL ? "/tmp/risk-engine-cache/" : `${process.cwd().endsWith("/web") ? pathResolve(process.cwd(), "../engine/cache") : pathResolve(process.cwd(), "engine/cache")}/`;
 const CACHE_TTL_MS = 6 * 3600_000;
 const json = async (fetcher: Fetcher, url: string, init?: RequestInit) => {
   const key = createHash("sha256").update(url + String(init?.body ?? "")).digest("hex").slice(0, 32);

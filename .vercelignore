@@ -1,0 +1,9 @@
+node_modules
+**/node_modules
+.next
+security/worker
+security/exploit
+worker
+deck
+docs
+.progress
