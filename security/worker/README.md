@@ -30,8 +30,8 @@ curl -X POST http://127.0.0.1:4412/hire \
 
 ## Account-2 registration
 
-`register.sh` is gated on `/tmp/briefs/account2.ready` and a Preprod identity different from the submission-1 account. It reuses the Vendor ID recorded by `worker/SETUP-RECORD.md`, provisions this Coworker, stores its runtime key in ignored secret storage, creates the rehearsal Task, optionally creates a paid Task when `RUN_PAID_TASK=true`, and requests TOKEN2049 workspace access. It records non-secret IDs in `SETUP-RECORD.md`.
+`register.sh` loads `SOKO_API_KEY` from the repository `.env`, refuses the submission-1 account, reuses the account-2 Vendor, connects this Coworker to the organization and Personal Workspace, stores its runtime key in ignored secret storage, and creates both rehearsal Tasks. It records non-secret IDs in `SETUP-RECORD.md`.
 
 ## Account-2 evidence
 
-The API-key identity was verified as `01a10fa0-f6b4-750d-a8d5-17aea30f98d8`. The shared Vendor could not be created because the Preprod API returned `403` requiring an organization Workspace, so this Coworker and its Tasks were not fabricated. The exact human action is recorded in `/tmp/briefs/risk.human`; no account-1 identity or OAuth state was used.
+The API-key identity was verified as `01a10fa0-f6b4-750d-a8d5-17aea30f98d8` before the Risk Analyst registration. The subsequent account-key check returned Core `401`, so this Coworker, paid Task, and hire flow were not fabricated. No account-1 identity or OAuth state was used.
