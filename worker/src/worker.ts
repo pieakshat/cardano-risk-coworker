@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { env, loadEnv } from "./config.ts";
 import { createPayment, submitResult, waitForPayment } from "./payment.ts";
-import { analyze } from "../../engine/index.ts";
+import { analyze } from "../../engine/engine.ts";
 import { writeMemo } from "../../memo/index.ts";
 
 loadEnv();

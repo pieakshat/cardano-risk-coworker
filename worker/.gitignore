@@ -1,4 +1,6 @@
 .env.local
+mps.env
+mps-*.log
 SETUP-RECORD.md
 results/
 node_modules/
