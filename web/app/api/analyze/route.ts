@@ -5,6 +5,7 @@ import { analyze, analyzeWith } from "../../../../engine/engine";
 import { writeMemo } from "../../../../memo";
 
 export const runtime = "nodejs";
+export const maxDuration = 55;
 
 const units = {
   MIN: "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
@@ -31,10 +32,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    const report = process.env.RISK_FIXTURES ? await analyzeWith(recorded, input) : await analyze(input);
+    const work = process.env.RISK_FIXTURES ? analyzeWith(recorded, input) : analyze(input);
+    const report = await Promise.race([
+      work,
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("ANALYSIS_TIMEOUT")), 50_000)),
+    ]);
     const memo = await writeMemo(report);
     return NextResponse.json(memo);
   } catch (error) {
+    if (error instanceof Error && error.message === "ANALYSIS_TIMEOUT") {
+      return NextResponse.json({ error: "Live analysis timed out. The stored report is still available." }, { status: 504 });
+    }
     console.error("risk analysis failed", error);
     return NextResponse.json({ error: "The token could not be analysed. Check the identifier and try again." }, { status: 502 });
   }
