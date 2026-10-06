@@ -1,0 +1,97 @@
+{
+  "input": "addr1z84q0denmyep98ph3tmzwsmw0j7zau9ljmsqx6a4rvaau66j2c79gy9l76sdg0xwhd7r0c0kna0tycz4y5s6mlenh8pq777e2a",
+  "target": "script",
+  "unit": "ea07b733d932129c378af627436e7cbc2ef0bf96e0036bb51b3bde6b",
+  "policyId": "ea07b733d932129c378af627436e7cbc2ef0bf96e0036bb51b3bde6b",
+  "assetNameAscii": "Minswap V2 pool",
+  "fingerprint": "",
+  "identity": {
+    "inRegistry": false
+  },
+  "policy": {
+    "scriptType": "plutus",
+    "requiredSigners": 0,
+    "mintOpen": false
+  },
+  "supply": {
+    "total": "0",
+    "mintTxCount": 0,
+    "burnTxCount": 0
+  },
+  "holders": {
+    "count": 0,
+    "top1Pct": 0,
+    "top10Pct": 0,
+    "scriptHeldPct": 0,
+    "sampled": false
+  },
+  "liquidity": {
+    "pools": [],
+    "totalTvlAda": 23409267.450065
+  },
+  "activity": {
+    "firstSeen": "2024-07-10T05:32:43.000Z",
+    "tx24h": 1000
+  },
+  "contract": {
+    "address": "addr1z84q0denmyep98ph3tmzwsmw0j7zau9ljmsqx6a4rvaau66j2c79gy9l76sdg0xwhd7r0c0kna0tycz4y5s6mlenh8pq777e2a",
+    "scriptHash": "ea07b733d932129c378af627436e7cbc2ef0bf96e0036bb51b3bde6b",
+    "scriptType": "plutusV2",
+    "scriptSizeBytes": 3965,
+    "firstSeen": "2024-07-10T05:32:43.000Z",
+    "tvlAda": 23409267.450065,
+    "topAssets": [
+      {
+        "unit": "f5808c2c990d86da54bfc97d89cee6efa20cd8461616359478d96b4c00002b40de9aa9cfd899e854db0834dd2d14065dbb3fc583e4b173e627362c53",
+        "quantity": "9223372036854775807"
+      },
+      {
+        "unit": "f5808c2c990d86da54bfc97d89cee6efa20cd8461616359478d96b4c001a7051732f9073a294c1f1fcc66e4dfcd5e0cad75e239815e6c0b7b5381d1d",
+        "quantity": "9223372036854775807"
+      },
+      {
+        "unit": "f5808c2c990d86da54bfc97d89cee6efa20cd8461616359478d96b4c00809578c96a6197fcd97f3d76c3803eac722df5edc272cae5cd6c5a69ca2c43",
+        "quantity": "9223372036854775807"
+      },
+      {
+        "unit": "f5808c2c990d86da54bfc97d89cee6efa20cd8461616359478d96b4c008cf93621dcd0fe7d83a8302ffe2a2e2bd9708822447c14d944242d6a80a5e9",
+        "quantity": "9223372036854775807"
+      },
+      {
+        "unit": "f5808c2c990d86da54bfc97d89cee6efa20cd8461616359478d96b4c008ec24b97c9942020fccafe455a9707840c04e38109a7350aa485c443a92b14",
+        "quantity": "9223372036854775807"
+      }
+    ],
+    "utxoCount": "at least 1000",
+    "recentTxCount": 1000,
+    "knownProtocol": "Minswap V2 pool"
+  },
+  "findings": [
+    {
+      "id": "known-protocol",
+      "severity": "info",
+      "title": "Known protocol: Minswap V2 pool",
+      "evidence": "https://github.com/minswap/minswap-dex-v2"
+    }
+  ],
+  "verdict": "LOW",
+  "verdictLabel": "INTERACT",
+  "sources": [
+    {
+      "call": "script_info_ea07b733d932129c378af627436e7cbc2ef0bf96e0036bb51b3bde6b",
+      "at": "2026-10-06T12:27:47.011Z"
+    },
+    {
+      "call": "address_utxos_addr1z84q0denmyep98ph3tmzwsmw0j7zau9ljmsqx6a4rvaau66j2c79gy9l76sdg0xwhd7r0c0kna0tycz4y5s6mlenh8pq777e2a",
+      "at": "2026-10-06T12:27:47.675Z"
+    },
+    {
+      "call": "address_txs_addr1z84q0denmyep98ph3tmzwsmw0j7zau9ljmsqx6a4rvaau66j2c79gy9l76sdg0xwhd7r0c0kna0tycz4y5s6mlenh8pq777e2a",
+      "at": "2026-10-06T12:27:47.676Z"
+    },
+    {
+      "call": "blockfrost_address_addr1z84q0denmyep98ph3tmzwsmw0j7zau9ljmsqx6a4rvaau66j2c79gy9l76sdg0xwhd7r0c0kna0tycz4y5s6mlenh8pq777e2a",
+      "at": "2026-10-06T12:27:47.677Z"
+    }
+  ]
+}

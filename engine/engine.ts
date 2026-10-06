@@ -49,6 +49,12 @@ function bech32Data(address: string): Uint8Array | null {
   return Uint8Array.from(bytes);
 }
 
+function paymentScriptHash(address: string): string | undefined {
+  const bytes = bech32Data(address);
+  if (!bytes || bytes.length < 29 || ![1, 3, 5, 7].includes(bytes[0] >> 4)) return undefined;
+  return Buffer.from(bytes.slice(1, 29)).toString("hex");
+}
+
 function isScriptAddress(address: string): boolean {
   const bytes = bech32Data(address);
   return bytes ? [1, 3, 5, 7].includes(bytes[0] >> 4) : false;
@@ -73,7 +79,11 @@ function inputParts(input: string): { unit?: string; fingerprint?: string; ticke
   return { ticker: value };
 }
 
-const isScriptInput = (input: string) => /^(addr1[0-9a-z]+|[0-9a-f]{56})$/i.test(input.trim());
+const isScriptInput = (input: string) => /^(addr(?:_test)?1[0-9a-z]+|[0-9a-f]{56})$/i.test(input.trim());
+
+export function unknownScriptFinding(known: boolean, tvlAda: number): Finding | undefined {
+  return !known && tvlAda > RULES.unknownScriptTvlAda ? { id: "unknown-script-value", severity: "medium", title: "Unknown contract holds significant value", evidence: `tvlAda=${tvlAda.toFixed(2)}; Blockfrost address totals` } : undefined;
+}
 
 type Context = { fetcher: Fetcher; fixtureDir?: string; sources: Array<{ call: string; at: string }> };
 
@@ -174,16 +184,19 @@ export async function analyzeWith(fetcher: Fetcher, input: string, fixtureDir?: 
 async function analyzeScriptWith(fetcher: Fetcher, input: string, fixtureDir?: string): Promise<RiskReport> {
   const ctx: Context = { fetcher, fixtureDir, sources: [] };
   const address = input.startsWith("addr") ? input : undefined;
-  const hash = address ? undefined : input.toLowerCase();
-  const info = address
-    ? (await request(ctx, `address_info_${address}`, `${KOIOS}/address_info`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ _addresses: [address] }) }))[0] ?? {}
-    : (await request(ctx, `script_info_${hash}`, `${KOIOS}/script_info`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ _script_hashes: [hash] }) }))[0] ?? {};
-  const scriptHash = hash ?? info.script_hash ?? info.scriptHash ?? "";
+  const hash = address ? paymentScriptHash(address) : input.toLowerCase();
+  if (!hash) throw new Error(`Unable to derive payment script hash from ${input}`);
+  const info = (await request(ctx, `script_info_${hash}`, `${KOIOS}/script_info`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ _script_hashes: [hash] }) }))[0] ?? {};
+  const scriptHash = hash;
+  const blockfrostKey = process.env.BLOCKFROST_API_KEY_MAINNET;
   const [utxos, txs, script] = await Promise.all([
     address ? request(ctx, `address_utxos_${address}`, `${KOIOS}/address_utxos`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ _addresses: [address] }) }) : Promise.resolve([]),
     address ? request(ctx, `address_txs_${address}`, `${KOIOS}/address_txs`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ _addresses: [address] }) }) : Promise.resolve([]),
-    hash ? Promise.resolve(info) : request(ctx, `script_info_${scriptHash}`, `${KOIOS}/script_info`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ _script_hashes: [scriptHash] }) }).then((rows) => rows?.[0] ?? {}),
+    Promise.resolve(info),
   ]);
+  const totals = address && blockfrostKey
+    ? await request(ctx, `blockfrost_address_${address}`, `${BLOCKFROST}/addresses/${address}` , { headers: { project_id: blockfrostKey } })
+    : undefined;
   const rows = Array.isArray(utxos) ? utxos : [];
   const assets = new Map<string, bigint>();
   let lovelace = 0n;
@@ -192,21 +205,28 @@ async function analyzeScriptWith(fetcher: Fetcher, input: string, fixtureDir?: s
     if (Array.isArray(value)) for (const asset of value) asset.asset === "lovelace" ? lovelace += BigInt(asset.quantity ?? 0) : assets.set(asset.asset ?? asset.unit, (assets.get(asset.asset ?? asset.unit) ?? 0n) + BigInt(asset.quantity ?? 0));
     else lovelace += BigInt(value.lovelace ?? row.value?.lovelace ?? 0);
   }
+  if (totals?.amount) {
+    lovelace = 0n;
+    assets.clear();
+    for (const asset of totals.amount) asset.unit === "lovelace" ? lovelace = BigInt(asset.quantity) : assets.set(asset.unit, BigInt(asset.quantity));
+  }
   const firstSeen = rows.map((row: any) => row.block_time ?? row.block_time_epoch).filter(Boolean).sort()[0] ? new Date(Number(rows.map((row: any) => row.block_time ?? row.block_time_epoch).filter(Boolean).sort()[0]) * 1000).toISOString() : new Date().toISOString();
   const scriptType = info.type ?? script.type ?? (info.script ? "plutus" : "unknown");
   const known = knownScript(scriptHash);
   const tvlAda = Number(lovelace) / 1_000_000;
   const findings: Finding[] = [];
-  if (!known && tvlAda > RULES.unknownScriptTvlAda) findings.push({ id: "unknown-script-value", severity: "medium", title: "Unknown script holds more than 100,000 ADA", evidence: `tvlAda=${tvlAda.toFixed(2)}; Koios address_utxos` });
+  const unknownValueFinding = unknownScriptFinding(Boolean(known), tvlAda);
+  if (unknownValueFinding) findings.push(unknownValueFinding);
   if (Date.now() - Date.parse(firstSeen) < RULES.youngScriptDays * 86_400_000) findings.push({ id: "young-script", severity: "medium", title: "Script is younger than 30 days", evidence: `firstSeen=${firstSeen}; Koios address_utxos` });
+  if (known) findings.push({ id: "known-protocol", severity: "info", title: `Known protocol: ${known.protocol}`, evidence: known.source });
   const adminKeyCount = Number(script.admin_key_count ?? script.required_signers ?? 0);
   if (adminKeyCount === 1) findings.push({ id: "single-admin-key", severity: "high", title: "Datum exposes a single admin key", evidence: "admin_key_count=1; Koios script_info datum fields" });
   const score = verdict(findings);
-  return { input, target: "script", unit: scriptHash, policyId: scriptHash, assetNameAscii: known ?? "Plutus script", fingerprint: "", identity: { inRegistry: false }, policy: { scriptType: scriptType === "native" ? "native" : scriptType === "plutus" ? "plutus" : "unknown", requiredSigners: adminKeyCount, mintOpen: false }, supply: { total: "0", mintTxCount: 0, burnTxCount: 0 }, holders: { count: 0, top1Pct: 0, top10Pct: 0, scriptHeldPct: 0, sampled: false }, liquidity: { pools: [], totalTvlAda: tvlAda }, activity: { firstSeen, tx24h: Array.isArray(txs) ? txs.length : 0 }, contract: { address, scriptHash, scriptType, scriptSizeBytes: script.script_size ?? script.size, firstSeen, tvlAda, topAssets: [...assets.entries()].sort((a, b) => a[1] > b[1] ? -1 : 1).slice(0, 5).map(([unit, quantity]) => ({ unit, quantity: String(quantity) })), utxoCount: rows.length, recentTxCount: Array.isArray(txs) ? txs.length : 0, ...(known ? { knownProtocol: known } : {}), ...(adminKeyCount ? { adminKeyCount } : {}) }, findings, verdict: score, verdictLabel: verdictLabel(score), sources: ctx.sources };
+  return { input, target: "script", unit: scriptHash, policyId: scriptHash, assetNameAscii: known?.protocol ?? "Plutus script", fingerprint: "", identity: { inRegistry: false }, policy: { scriptType: scriptType.startsWith("native") || scriptType === "timelock" ? "native" : scriptType.startsWith("plutus") ? "plutus" : "unknown", requiredSigners: adminKeyCount, mintOpen: false }, supply: { total: "0", mintTxCount: 0, burnTxCount: 0 }, holders: { count: 0, top1Pct: 0, top10Pct: 0, scriptHeldPct: 0, sampled: false }, liquidity: { pools: [], totalTvlAda: tvlAda }, activity: { firstSeen, tx24h: Array.isArray(txs) ? txs.length : 0 }, contract: { address, scriptHash, scriptType, scriptSizeBytes: script.script_size ?? script.size ?? (script.bytes ? script.bytes.length / 2 : undefined), firstSeen, tvlAda, topAssets: [...assets.entries()].sort((a, b) => a[1] > b[1] ? -1 : 1).slice(0, 5).map(([unit, quantity]) => ({ unit, quantity: String(quantity) })), utxoCount: rows.length >= RULES.holderPageSize ? `at least ${rows.length}` : rows.length, recentTxCount: Array.isArray(txs) ? txs.length : 0, ...(known ? { knownProtocol: known.protocol } : {}), ...(adminKeyCount ? { adminKeyCount } : {}) }, findings, verdict: score, verdictLabel: verdictLabel(score), sources: ctx.sources };
 }
 
-function knownScript(hash: string): string | undefined {
-  try { const entries = JSON.parse(readFileSync(pathResolve(process.cwd(), "engine/known-scripts.json"), "utf8")); return entries.find((entry: any) => entry.scriptHashes?.includes(hash))?.protocol; } catch { return undefined; }
+function knownScript(hash: string): { protocol: string; source: string } | undefined {
+  try { const entries = JSON.parse(readFileSync(pathResolve(process.cwd(), "engine/known-scripts.json"), "utf8")); return entries.find((entry: any) => entry.scriptHashes?.includes(hash)); } catch { return undefined; }
 }
 
 export function analyze(input: string): Promise<RiskReport> {
