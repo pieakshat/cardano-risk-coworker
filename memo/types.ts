@@ -44,5 +44,6 @@ export type RiskReport = {
   activity: { tx24h?: number; firstSeen: string };
   findings: Finding[];
   verdict: "LOW" | "MEDIUM" | "HIGH";
+  verdictLabel?: "INTERACT" | "INTERACT WITH CONDITIONS" | "DO NOT INTERACT";
   sources: Array<{ call: string; at: string }>;
 };

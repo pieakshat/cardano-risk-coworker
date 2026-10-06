@@ -19,6 +19,9 @@ type Report = {
   activity: { tx24h?: number; firstSeen: string };
   findings: Finding[];
   verdict: "LOW" | "MEDIUM" | "HIGH";
+  verdictLabel?: "INTERACT" | "INTERACT WITH CONDITIONS" | "DO NOT INTERACT";
+  target?: "token" | "script";
+  contract?: { address?: string; scriptHash: string; scriptType: string; scriptSizeBytes?: number; firstSeen: string; tvlAda: number; topAssets: Array<{ unit: string; quantity: string }>; utxoCount: number; recentTxCount: number; knownProtocol?: string; adminKeyCount?: number };
   sources: Array<{ call: string; at: string }>;
   generatedAt?: string;
   summaryOnly?: boolean;
@@ -37,7 +40,7 @@ export default function RiskDesk() {
 
   useEffect(() => { fetch("/api/settle/latest").then((response) => response.json()).then(setSettlement).catch(() => setSettlement({ status: "unavailable" })); }, []);
 
-  const checks = ["identity", "minting", "holders", "liquidity"];
+  const checks = ["Who controls it", "Is the code safe", "Can you get in and out"];
   useEffect(() => {
     if (!loading) { setPhase(0); return; }
     const timer = window.setInterval(() => setPhase((current) => Math.min(current + 1, checks.length - 1)), 850);
@@ -47,6 +50,7 @@ export default function RiskDesk() {
   async function submit(event?: FormEvent, requestedInput = input) {
     event?.preventDefault();
     if (!requestedInput.trim()) return;
+    if (/^https?:\/\/github\.com\//i.test(requestedInput.trim())) { window.location.href = `/security?repo=${encodeURIComponent(requestedInput.trim())}`; return; }
     setLoading(true);
     setError("");
     try {
@@ -78,19 +82,19 @@ export default function RiskDesk() {
       {!report ? (
         <section className={styles.intro}>
           <div className={styles.introCopy}>
-            <p className={styles.kicker}>CARDANO MAINNET · RISK MEMO</p>
-            <h1>Know the token before you touch it.</h1>
-            <p className={styles.lede}>A deterministic read on minting control, holder concentration, liquidity, and recent activity. Enter one token identifier.</p>
+            <p className={styles.kicker}>CARDANO MAINNET · DECISION MEMO</p>
+            <h1>Should I interact with this Cardano contract?</h1>
+            <p className={styles.lede}>One cited verdict for a token, DEX pool, lending market, escrow, Plutus script, or public contract repository.</p>
             <form className={styles.search} onSubmit={submit}>
-              <label htmlFor="token">Token identifier</label>
+              <label htmlFor="token">Contract input</label>
               <div className={styles.inputRow}>
-                <input id="token" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Policy ID, unit, ticker, or fingerprint" autoComplete="off" />
-                <button type="submit" disabled={loading || !input.trim()}>{loading ? "Reading…" : "Analyse token"}</button>
+                <input id="token" value={input} onChange={(event) => setInput(event.target.value)} placeholder="MIN, script address, hash, or GitHub URL" autoComplete="off" />
+                <button type="submit" disabled={loading || !input.trim()}>{loading ? "Reading…" : "Get verdict"}</button>
               </div>
               {error && <p className={styles.error} role="alert">{error}</p>}
             </form>
             <div className={styles.examples}>
-              <span>Stored reports</span>
+              <span>Try an example</span>
               {storedReports.map((example) => <span className={styles.example} key={example.input}>
                 <button onClick={() => { setInput(example.input); setReport(example); setError(""); }}>{example.input}</button>
                 <small>report from {formatGeneratedAt(example.generatedAt)}</small>
@@ -127,10 +131,13 @@ function SettlementPanel({ run }: { run: SettlementRun | null }) {
 }
 
 function ReportView({ report, redFlag, onReset, onRerun }: { report: Report; redFlag?: Finding; onReset: () => void; onRerun: () => void }) {
+  const controls = report.target === "script" ? `${report.contract?.knownProtocol || "Unknown script"}. ${report.contract?.utxoCount ?? 0} UTxOs, first seen ${formatReportDate(report.contract?.firstSeen || report.activity.firstSeen)}.` : `Mint policy is ${report.policy.mintOpen ? "open" : "closed"}; ${report.holders.sampled ? `${report.holders.top1Pct.toFixed(2)}% is held by the largest sampled holder.` : "holder concentration is not sampled."}`;
+  const code = report.target === "script" ? `${report.contract?.scriptType || "Unknown"} script${report.contract?.scriptSizeBytes ? `, ${report.contract.scriptSizeBytes} bytes` : ""}. Findings are raised only when a deterministic rule fires.` : "Minting policy and identity checks are reported from mainnet data.";
+  const exit = report.target === "script" ? `${formatAda(report.contract?.tvlAda || 0)} ADA locked across ${report.contract?.utxoCount || 0} UTxOs.` : `${formatAda(report.liquidity.totalTvlAda)} ADA across ${report.liquidity.pools.length} pools.`;
   return <section className={styles.report} aria-live="polite">
-    <div className={styles.reportTop}><div><p className={styles.kicker}>RISK MEMO · {report.input}</p><h1>This token is <span className={styles[`verdict${report.verdict}`]}>{report.verdict.toLowerCase()} risk</span>.</h1><p className={styles.lede}>{report.identity.registryName || report.assetNameAscii || report.unit}</p>{report.generatedAt && <p className={styles.storedAt}>Stored report from {formatGeneratedAt(report.generatedAt)}{report.summaryOnly ? " · summary snapshot" : ""}</p>}</div><div className={styles.reportActions}><button className={styles.reset} onClick={onRerun}>Re-run live</button><button className={styles.reset} onClick={onReset}>Analyse another token</button></div></div>
+    <div className={styles.reportTop}><div><p className={styles.kicker}>DECISION MEMO · {report.input}</p><h1><span className={styles[`verdict${report.verdict}`]}>{report.verdictLabel || ({ LOW: "INTERACT", MEDIUM: "INTERACT WITH CONDITIONS", HIGH: "DO NOT INTERACT" } as const)[report.verdict]}</span></h1><p className={styles.lede}>{report.contract?.knownProtocol || report.identity.registryName || report.assetNameAscii || report.unit}</p>{report.generatedAt && <p className={styles.storedAt}>Stored report from {formatGeneratedAt(report.generatedAt)}{report.summaryOnly ? " · summary snapshot" : ""}</p>}</div><div className={styles.reportActions}><button className={styles.reset} onClick={onRerun}>Re-run live</button><button className={styles.reset} onClick={onReset}>Analyse another input</button></div></div>
     {redFlag && <div className={`${styles.redFlag} ${styles[`flag${redFlag.severity}`]}`}><span className={styles.flagLabel}>BIGGEST RED FLAG</span><strong>{redFlag.title}</strong><p>{redFlag.evidence}</p></div>}
-    <div className={styles.reportBody}><div className={styles.findings}><div className={styles.sectionHead}><h2>{report.verdict === "LOW" ? "Checks passed" : "Findings"}</h2><span>{report.verdict === "LOW" ? "3 evidence-backed checks" : `${report.findings.length} evidence-backed checks`}</span></div>{report.verdict === "LOW" && <div className={styles.passedChecks}><PassedCheck title="Mint closed" evidence={report.policy.timelockedBefore ? `time-locked since ${formatReportDate(report.policy.timelockedBefore)}` : report.summaryOnly ? "stored summary marks minting clear; re-run live for the lock date" : "no open mint authority"} /><PassedCheck title="Liquidity" evidence={`${formatAda(report.liquidity.totalTvlAda)} ADA across ${report.liquidity.pools.length ? [...new Set(report.liquidity.pools.map((pool) => pool.dex))].join(" and ") : "stored engine summary"}`} /><PassedCheck title="Largest non-script holder" evidence={report.holders.sampled ? `${report.holders.top1Pct.toFixed(2)}% of supply` : "stored summary has no holder sample; re-run live for the address evidence"} /></div>}{report.findings.map((finding) => <article className={styles.finding} key={finding.id}><div className={styles.findingTitle}><span className={`${styles.severity} ${styles[`severity${finding.severity}`]}`}>{finding.severity}</span><h3>{finding.title}</h3></div><p>{finding.evidence}</p></article>)}</div><aside className={styles.facts}><h2>Evidence trail</h2><dl><dt>Policy</dt><dd>{report.policyId || "Not resolved"}</dd><dt>Fingerprint</dt><dd>{report.fingerprint || "Not resolved"}</dd><dt>{report.holders.sampled ? "Holder sample" : "Holder evidence"}</dt><dd>{report.holders.sampled ? `largest ${report.holders.count.toLocaleString()} holder addresses sampled` : "not included in this summary"}</dd><dt>Liquidity</dt><dd>{formatAda(report.liquidity.totalTvlAda)} ADA</dd></dl><a className={styles.hireWide} href={process.env.NEXT_PUBLIC_COWORKER_URL || "https://sokosumi.com"}>Hire on Sokosumi <span>↗</span></a></aside></div>
+    <div className={styles.reportBody}><div className={styles.findings}><div className={styles.sectionHead}><h2>Three checks</h2><span>{report.findings.length ? `${report.findings.length} findings` : "No findings"}</span></div><PassedCheck title="Who controls it" evidence={controls} /><PassedCheck title="Is the code safe" evidence={code} /><PassedCheck title="Can you get in and out" evidence={exit} />{report.findings.map((finding) => <article className={styles.finding} key={finding.id}><div className={styles.findingTitle}><span className={`${styles.severity} ${styles[`severity${finding.severity}`]}`}>{finding.severity}</span><h3>{finding.title}</h3></div><p>{finding.evidence}</p></article>)}</div><aside className={styles.facts}><h2>Evidence trail</h2><dl><dt>{report.target === "script" ? "Script hash" : "Policy"}</dt><dd>{report.policyId || "Not resolved"}</dd><dt>{report.target === "script" ? "Recent transactions" : "Fingerprint"}</dt><dd>{report.target === "script" ? report.contract?.recentTxCount ?? 0 : report.fingerprint || "Not resolved"}</dd><dt>Liquidity / TVL</dt><dd>{formatAda(report.target === "script" ? report.contract?.tvlAda || 0 : report.liquidity.totalTvlAda)} ADA</dd></dl><a className={styles.hireWide} href={process.env.NEXT_PUBLIC_COWORKER_URL || "https://sokosumi.com"}>Hire on Sokosumi <span>↗</span></a></aside></div>
     <div className={styles.sources}><h2>Source calls</h2>{report.sources.map((source) => <div className={styles.source} key={`${source.call}-${source.at}`}><code>{source.call}</code><time>{source.at}</time></div>)}</div>
   </section>;
 }

@@ -5,9 +5,15 @@ export const RULES = {
   youngTokenDays: 30,
   holderPageSize: 1000,
   holderPageCap: 1,
+  unknownScriptTvlAda: 100_000,
+  youngScriptDays: 30,
 } as const;
 
 export function verdict(findings: Array<{ severity: string }>): "LOW" | "MEDIUM" | "HIGH" {
   if (findings.some((finding) => finding.severity === "high")) return "HIGH";
   return findings.filter((finding) => finding.severity === "medium").length >= 2 ? "MEDIUM" : "LOW";
+}
+
+export function verdictLabel(value: "LOW" | "MEDIUM" | "HIGH") {
+  return value === "HIGH" ? "DO NOT INTERACT" : value === "MEDIUM" ? "INTERACT WITH CONDITIONS" : "INTERACT";
 }

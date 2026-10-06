@@ -22,7 +22,7 @@ const MEANING: Record<string, string> = {
 export function memoFacts(r: RiskReport) {
   const pools = [...r.liquidity.pools].sort((a, b) => b.tvlAda - a.tvlAda);
   return {
-    verdict: r.verdict,
+    verdict: r.verdictLabel ?? ({ LOW: "INTERACT", MEDIUM: "INTERACT WITH CONDITIONS", HIGH: "DO NOT INTERACT" } as const)[r.verdict],
     token: { name: r.identity.registryName ?? r.assetNameAscii, ticker: r.identity.ticker ?? r.assetNameAscii, unit: r.unit, inRegistry: r.identity.inRegistry },
     minting: { scriptType: r.policy.scriptType, mintOpen: r.policy.mintOpen, requiredSigners: r.policy.requiredSigners, timelockedBefore: r.policy.timelockedBefore ?? null },
     holders: { addressesSampled: r.holders.count, sampled: r.holders.sampled, source: "Blockfrost mainnet, largest holders first", top1Pct: round(r.holders.top1Pct), top10Pct: round(r.holders.top10Pct), heldByContractsPct: round(r.holders.scriptHeldPct) },
@@ -32,7 +32,7 @@ export function memoFacts(r: RiskReport) {
 }
 
 function prompt(facts: ReturnType<typeof memoFacts>, retry = false): string {
-  return `${retry ? "Your previous answer used a number that is not in the facts. " : ""}You are a Cardano token risk analyst writing for a buyer deciding whether to swap into this token. Write ONE paragraph of 2 to 4 sentences, no headings, no lists: the decision a buyer should make and the single reason that matters most, then what would change the verdict. Use ONLY these facts and copy any number exactly as written. Plain words, no hype, no field names.\n\nFACTS:\n${JSON.stringify(facts, null, 1)}`;
+  return `${retry ? "Your previous answer used a number that is not in the facts. " : ""}You are a Cardano risk analyst writing for a buyer deciding whether to interact with this contract. Write ONE paragraph of 2 to 4 sentences, no headings, no lists: state INTERACT, INTERACT WITH CONDITIONS, or DO NOT INTERACT, explain the strongest reason, then what would change the verdict. Use ONLY these facts and copy any number exactly as written. Plain words, no hype, no field names.\n\nFACTS:\n${JSON.stringify(facts, null, 1)}`;
 }
 
 function deterministicMemo(r: RiskReport, facts = memoFacts(r)): string {

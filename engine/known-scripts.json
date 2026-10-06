@@ -1,0 +1,7 @@
+[
+  {"protocol":"Minswap V2 pool","scriptHashes":[],"source":"https://docs.minswap.org/developer/advanced/smart-contracts"},
+  {"protocol":"SundaeSwap V3 pool","scriptHashes":[],"source":"https://docs.sundae.fi/docs/technical-reference/smart-contracts"},
+  {"protocol":"Liqwid market","scriptHashes":[],"source":"https://docs.liqwid.finance/developers/smart-contracts"},
+  {"protocol":"Indigo CDP","scriptHashes":[],"source":"https://docs.indigoprotocol.io/"},
+  {"protocol":"Djed","scriptHashes":[],"source":"https://docs.djed.one/"}
+]

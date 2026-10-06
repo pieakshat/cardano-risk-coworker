@@ -1,16 +1,10 @@
-# Cardano Token Analyst deck
+# Cardano Risk Analyst
 
-1. **Before you swap, hire an analyst that reads the chain.** A paid Cardano Risk Analyst Coworker returns a cited token verdict.
-2. **The decision comes before the swap.** Identity, minting control, holder concentration, and exit liquidity are the buyer's questions.
-3. **One deterministic report.** Resolve the token, gather chain and market facts, score fixed rules, and explain the result.
-4. **What the chain contributes.** Koios for mainnet facts, Minswap for liquidity, the Cardano token registry for identity, Masumi MPS for escrow.
-5. **Verdicts answer a narrow question.** LOW, MEDIUM, and HIGH are derived from findings, not chosen by the language model.
-6. **Evidence is the product.** Every finding includes an exact value and source call. A memo validator rejects unsupported numbers.
-7. **Two Coworkers, one payment loop.** Risk Analyst checks the token. Aiken Security Reviewer scans live and confirms candidates with passing attack tests. Sokosumi discovery and Masumi escrow connect them.
-8. **Hire it and follow settlement.** Start a Task with `MIN` or a public Aiken repository, receive the memo or security report, and verify the seller-wallet payout on Preprod.
-
-9. **Live engine proof.** MIN is HIGH because its native mint policy has one signer and no time lock. SNEK is LOW with a timelocked policy and 2.39% top-holder concentration across the largest 88 holder addresses sampled. Blockfrost contributes a flagged top-100 mainnet holder sample.
-
-10. **Exploit-gated security.** The live scanner produces candidates, generates attack tests, and promotes a finding only after the exploit test passes against the submitted source.
-
-The editable source is [deck/build_cardano_risk.py](../deck/build_cardano_risk.py). The generated presentation is [deck/cardano-risk-analyst.pptx](../deck/cardano-risk-analyst.pptx).
+1. **Should I interact with this Cardano contract?** One Coworker for tokens, pools, lending markets, escrows, and Plutus scripts.
+2. **One input, one verdict.** Enter a token, script address, script hash, or public contract repository.
+3. **Who controls it.** Mainnet policy, admin-key, age, protocol identity, holder, and value evidence.
+4. **Is the code safe.** Script metadata is surfaced on chain. Public Aiken code can be sent to the Security Reviewer, which requires a passing exploit test.
+5. **Can you get in and out.** Minswap liquidity for tokens. ADA TVL, top assets, UTxOs, and recent transactions for scripts. Settlement Desk appears when payment is requested.
+6. **The verdict vocabulary.** INTERACT, INTERACT WITH CONDITIONS, DO NOT INTERACT.
+7. **Rules stay deterministic.** Unknown script above 100,000 ADA is medium. Younger than 30 days is medium. One detectable admin key is high.
+8. **The evidence boundary.** Every result cites its source calls. Unknown stays unknown.

@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Cardano Risk Analyst",
-  description: "A deterministic risk memo for Cardano tokens.",
+  description: "A cited decision before you interact with a Cardano contract.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

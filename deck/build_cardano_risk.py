@@ -82,21 +82,21 @@ def footer(s):
 
 
 s = slide()
-text(s, 0.8, 1.55, 11.7, 1.0, "Before you swap into a Cardano token,", 34, True, INK, PP_ALIGN.CENTER, TITLE)
-text(s, 0.8, 2.55, 11.7, 1.0, "hire an analyst that reads the chain.", 34, True, ACCENT, PP_ALIGN.CENTER, TITLE)
-text(s, 1.8, 4.0, 9.7, 0.65, "A paid Coworker that turns policy, holders, liquidity, and activity into a cited verdict.", 20, False, INK, PP_ALIGN.CENTER)
+text(s, 0.8, 1.55, 11.7, 1.0, "Should I interact with this", 34, True, INK, PP_ALIGN.CENTER, TITLE)
+text(s, 0.8, 2.55, 11.7, 1.0, "Cardano contract?", 34, True, ACCENT, PP_ALIGN.CENTER, TITLE)
+text(s, 1.8, 4.0, 9.7, 0.65, "One paid Coworker for control, code safety, and getting in and out.", 20, False, INK, PP_ALIGN.CENTER)
 text(s, 0.7, 6.95, 11.9, 0.25, "1/8", 11, False, MUTED, PP_ALIGN.RIGHT)
 
 s = slide(); heading(s, "The decision comes before the swap", 2)
-text(s, 0.7, 1.65, 11.8, 0.6, "Token names are easy to copy. Control and exit conditions are not.", 23)
-card(s, 0.7, 2.65, 3.75, 2.2, "Identity", "Registry name, ticker, decimals, URL, policy unit", True)
-card(s, 4.8, 2.65, 3.75, 2.2, "Control", "Mint policy type, timelock, signers, mint status")
-card(s, 8.9, 2.65, 3.75, 2.2, "Exit", "Holder concentration, DEX liquidity, recent activity")
+text(s, 0.7, 1.65, 11.8, 0.6, "Tokens, pools, lending markets, escrows, and Plutus scripts use the same decision.", 23)
+card(s, 0.7, 2.65, 3.75, 2.2, "Who controls it", "Policy, admin key, age, protocol identity, holders", True)
+card(s, 4.8, 2.65, 3.75, 2.2, "Is the code safe", "Script type, size, source review when public")
+card(s, 8.9, 2.65, 3.75, 2.2, "Can you get in and out", "TVL, UTxOs, transactions, liquidity, Settlement Desk")
 footer(s)
 
 s = slide(); heading(s, "One deterministic report", 3)
 text(s, 0.7, 1.65, 11.8, 0.6, "The language model writes the memo. Fixed rules decide the verdict.", 23)
-steps = [("01", "Resolve", "ticker, fingerprint, or unit"), ("02", "Gather", "Koios, Minswap, registry"), ("03", "Score", "high, medium, low findings"), ("04", "Explain", "facts with source calls")]
+steps = [("01", "Resolve", "token, address, hash, or repo"), ("02", "Gather", "Koios, protocol data, registry"), ("03", "Score", "interaction findings"), ("04", "Explain", "facts with source calls")]
 for i, (num, title, body) in enumerate(steps):
     x = 0.7 + i * 3.1
     card(s, x, 2.7, 2.7, 2.5, f"{num}  {title}", body, i == 3)
@@ -114,9 +114,9 @@ for i, (title, body) in enumerate(rows):
 footer(s)
 
 s = slide(); heading(s, "Verdicts answer a narrow question", 5)
-card(s, 0.7, 1.85, 3.75, 3.2, "LOW", "No high finding and fewer than two medium findings. Read the memo before acting.", True)
-card(s, 4.8, 1.85, 3.75, 3.2, "MEDIUM", "At least two medium findings. Investigate concentration, liquidity, age, or registry identity.")
-card(s, 8.9, 1.85, 3.75, 3.2, "HIGH", "A high finding is present, such as open minting, concentrated ownership, or recent minting.")
+card(s, 0.7, 1.85, 3.75, 3.2, "INTERACT", "No high finding and fewer than two medium findings.", True)
+card(s, 4.8, 1.85, 3.75, 3.2, "INTERACT WITH CONDITIONS", "Medium findings need a buyer decision before signing.")
+card(s, 8.9, 1.85, 3.75, 3.2, "DO NOT INTERACT", "A high finding is present, such as a single admin key.")
 text(s, 0.7, 5.55, 11.9, 0.5, "Every finding carries an exact value and the source call that produced it.", 18, True, INK, PP_ALIGN.CENTER)
 footer(s)
 

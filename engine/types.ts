@@ -16,6 +16,9 @@ export type RiskReport = {
   activity: { tx24h?: number; firstSeen: string };
   findings: Finding[];
   verdict: "LOW" | "MEDIUM" | "HIGH";
+  verdictLabel?: "INTERACT" | "INTERACT WITH CONDITIONS" | "DO NOT INTERACT";
+  target?: "token" | "script";
+  contract?: { address?: string; scriptHash: string; scriptType: string; scriptSizeBytes?: number; firstSeen: string; tvlAda: number; topAssets: Array<{ unit: string; quantity: string }>; utxoCount: number; recentTxCount: number; knownProtocol?: string; adminKeyCount?: number };
   sources: Array<{ call: string; at: string }>;
 };
 

@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   const input = typeof body.input === "string" ? body.input.trim() : "";
 
   if (!input) {
-    return NextResponse.json({ error: "Enter a policy id, unit, ticker, or fingerprint." }, { status: 400 });
+    return NextResponse.json({ error: "Enter a token, script address, script hash, or GitHub repository." }, { status: 400 });
   }
 
   try {
@@ -44,6 +44,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Live analysis timed out. The stored report is still available." }, { status: 504 });
     }
     console.error("risk analysis failed", error);
-    return NextResponse.json({ error: "The token could not be analysed. Check the identifier and try again." }, { status: 502 });
+    return NextResponse.json({ error: "The input could not be analysed. Check the identifier and try again." }, { status: 502 });
   }
 }
