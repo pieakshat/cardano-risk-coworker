@@ -6,6 +6,11 @@
       "critical double satisfaction across vault and coverage outputs",
       "Settle accepts a report after decide_by or an early INCONCLUSIVE report",
       "signed report is not bound to the coverage task_ref"
+    ],
+    "bugRules": [
+      "double-satisfaction",
+      "settle-window",
+      "missing-task-binding"
     ]
   },
   "onchain-fixed": {
@@ -16,8 +21,32 @@
       "Settle accepts a report after decide_by or an early INCONCLUSIVE report",
       "signed report is not bound to the coverage task_ref"
     ],
-    "expectNoConfirmed": true
+    "expectNoConfirmed": true,
+    "replayFrom": "onchain-vulnerable",
+    "bugRules": [
+      "double-satisfaction",
+      "settle-window",
+      "missing-task-binding"
+    ]
   },
-  "01_sell_nft": { "projectDir": "/tmp/cardano-ctf/01_sell_nft", "source": "README.md", "bugs": ["one payment can satisfy multiple NFT sale outputs"] },
-  "bank_01_deposit_vulnerability": { "projectDir": "/tmp/cardano-ctf/bank_01_deposit_vulnerability", "source": "README.md", "bugs": ["deposit into another account can take control of its funds"] }
+  "01_sell_nft": {
+    "projectDir": "/tmp/cardano-ctf/01_sell_nft",
+    "source": "README.md",
+    "bugs": [
+      "one payment can satisfy multiple NFT sale outputs"
+    ],
+    "bugRules": [
+      "double-satisfaction"
+    ]
+  },
+  "bank_01_deposit_vulnerability": {
+    "projectDir": "/tmp/cardano-ctf/bank_01_deposit_vulnerability",
+    "source": "README.md",
+    "bugs": [
+      "deposit into another account can take control of its funds"
+    ],
+    "bugRules": [
+      "redeemer-no-state-check"
+    ]
+  }
 }

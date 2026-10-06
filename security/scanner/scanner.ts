@@ -63,7 +63,7 @@ function inspectBlock(block: Block, source: string): Candidate[] {
   const text = block.text
   const result: Candidate[] = []
   const isValidator = /\bvalidator\s+\w+/.test(text)
-  const isHandler = /\b(?:validate|spend|withdraw|mint)\b/.test(text)
+  const isHandler = isValidator || /\b(?:validate|spend|withdraw|mint)\b/.test(text)
 
   if (isHandler && /paid_to_(?:address|key)\s*\([^)]*,[^)]*,\s*None\s*\)/s.test(text) && !/sole_script_input\s*\(/.test(text)) {
     result.push(candidate(
@@ -72,6 +72,27 @@ function inspectBlock(block: Block, source: string): Candidate[] {
       "None",
       "A payout is selected without binding it to the consumed script input and there is no single-script-input guard.",
       "Spend two script inputs in one transaction and make one payout satisfy both validators' value checks.",
+    ))
+  }
+
+  const outputScan = /\blist\.(?:find|any|filter|has)\s*\(\s*(?:\w+\.)*outputs\b[\s\S]*?\.address\s*==[\s\S]*?(?:lovelace_of|\.value)/
+  if (isHandler && outputScan.test(text) && !/sole_script_input\s*\(/.test(text) && !/\b(?:own_ref|output_reference)\b[^\n]*==|==[^\n]*\b(?:own_ref|output_reference)\b/.test(text) && !/\binputs\b[\s\S]*\blist\.length\b|\blist\.length\s*\([^)]*inputs/.test(text)) {
+    result.push(candidate(
+      block,
+      "double-satisfaction",
+      "list.find",
+      "The payout is any output with the right address and amount, found by searching all outputs without tying it to this script input. One payment satisfies every script input spent in the same transaction.",
+      "Spend two script UTxOs owed to the same address in one transaction and pay the price once; each validator finds the same output.",
+    ))
+  }
+
+  if (isHandler && /(?:^|\n)\s*\w+\s*->\s*True\b/.test(text) && /\bwhen\s+\w+\s+is\b/.test(text)) {
+    result.push(candidate(
+      block,
+      "redeemer-no-state-check",
+      "-> True",
+      "A redeemer branch of a spend handler returns True with no check on the outputs, so the continuing datum (for example its owner field) is unconstrained by this script.",
+      "Spend through the unconstrained branch and write a continuing output whose datum names an attacker-controlled owner, then use the owner-gated branch to withdraw.",
     ))
   }
 

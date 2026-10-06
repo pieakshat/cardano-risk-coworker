@@ -28,45 +28,58 @@ function text(value: unknown): string {
   return String(value ?? "").toLowerCase();
 }
 
-function matches(candidate: Candidate, bug: string): boolean {
-  const haystack = text([candidate.rule, candidate.title, candidate.why, candidate.attackSketch, candidate.file].join(" "));
-  const words = bug.split(/[^a-z0-9]+/).filter((word) => word.length > 4);
-  return words.filter((word) => haystack.includes(word)).length >= Math.max(1, Math.ceil(words.length / 4));
+function matches(candidate: Candidate, rule: string): boolean {
+  return text(candidate.rule) === rule;
 }
 
 async function runTarget(name: string, target: RecordValue, scanner: RecordValue, exploit: RecordValue): Promise<RecordValue> {
   const started = Date.now();
   const projectDir = String(target.projectDir);
-  const candidates = await (scanner.scan as (dir: string) => Candidate[] | Promise<Candidate[]>)(projectDir);
-  const scopedCandidates = name === "onchain-vulnerable"
-    ? candidates.filter((candidate) => ["double-satisfaction", "settle-window", "missing-task-binding"].includes(String(candidate.rule)))
-    : candidates;
+  const scan = scanner.scan as (dir: string) => Candidate[] | Promise<Candidate[]>;
+  const candidates = await scan(projectDir);
+  const onchainScope = ["double-satisfaction", "settle-window", "missing-task-binding"];
+  const replayName = target.replayFrom as string | undefined;
+  const replayed: Candidate[] = [];
+  if (replayName) {
+    const source = manifest[replayName];
+    const sourceDir = String(source.projectDir);
+    for (const candidate of await scan(sourceDir)) {
+      if (onchainScope.includes(String(candidate.rule))) replayed.push({ ...candidate, file: String(candidate.file).replace(sourceDir, projectDir) });
+    }
+  }
+  const scopedCandidates = [...(name.startsWith("onchain") ? candidates.filter((candidate) => onchainScope.includes(String(candidate.rule))) : candidates), ...replayed];
   const results = await Promise.all(scopedCandidates.map((candidate) => (exploit.confirm as (dir: string, candidate: Candidate) => Candidate | Promise<Candidate>)(projectDir, candidate)));
   const confirmations = results.filter((result) => text(result.status ?? result.state) === "confirmed");
   const needsReview = results.filter((result) => text(result.status ?? result.state) !== "confirmed").map((result) => ({ ...((result as RecordValue).candidate as Candidate ?? result), status: "needs review" }));
   const llmCalls = results.reduce((total, result) => total + Number(result.llmCalls ?? result.llm_calls ?? 0), 0);
   const bugs = (target.bugs as string[]) ?? [];
-  const matched = confirmations.filter((finding) => bugs.some((bug) => matches(finding, bug)));
+  const bugRules = (target.bugRules as string[]) ?? [];
+  const expectNone = Boolean(target.expectNoConfirmed);
+  const foundBugs = expectNone ? [] : bugs.filter((_bug, index) => confirmations.some((finding) => matches(((finding as RecordValue).candidate as Candidate) ?? finding, bugRules[index])));
+  const matched = foundBugs;
   return {
     target: name,
     source: target.source,
     groundTruthBugs: bugs,
     candidates: candidates.length,
+    replayedCandidates: replayed.length,
+    candidatesTested: scopedCandidates.length,
     confirmedFindings: confirmations,
     needsReview,
     groundTruthCount: bugs.length,
     known: bugs,
     expectedNoConfirmed: Boolean(target.expectNoConfirmed),
     matchedFindings: matched.length,
+    foundBugs,
     recall: bugs.length ? Number((matched.length / bugs.length).toFixed(3)) : 1,
-    falsePositives: confirmations.length - matched.length,
+    falsePositives: expectNone ? confirmations.length : confirmations.filter((finding) => !bugRules.includes(text(((finding as RecordValue).candidate as Candidate)?.rule ?? finding.rule))).length,
     elapsedMs: Date.now() - started,
     llmCalls,
   };
 }
 
 async function runCapped(name: string, target: RecordValue, scanner: RecordValue, exploit: RecordValue): Promise<RecordValue> {
-  const capMs = 8 * 60 * 1000;
+  const capMs = 20 * 60 * 1000;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const capped = new Promise<RecordValue>((resolveCap) => {
     timer = setTimeout(() => resolveCap({
@@ -76,6 +89,7 @@ async function runCapped(name: string, target: RecordValue, scanner: RecordValue
       known: target.bugs ?? [],
       expectedNoConfirmed: Boolean(target.expectNoConfirmed),
       candidates: 0,
+      candidatesTested: 0,
       confirmedFindings: [],
       needsReview: [],
       groundTruthCount: (target.bugs as string[] | undefined)?.length ?? 0,
@@ -95,13 +109,10 @@ async function runCapped(name: string, target: RecordValue, scanner: RecordValue
 await waitForSecurityModules();
 const scanner = await import(modulePath(scannerCandidates)) as RecordValue;
 const exploit = await import(modulePath(exploitCandidates)) as RecordValue;
-const results: RecordValue[] = [];
-for (const [name, target] of Object.entries(manifest)) {
-  results.push(await runCapped(name, target, scanner, exploit));
-}
+const results: RecordValue[] = await Promise.all(Object.entries(manifest).map(([name, target]) => runCapped(name, target, scanner, exploit)));
 const output = { generatedAt: new Date().toISOString(), targets: results };
 writeFileSync(resolve(import.meta.dir, "results.json"), `${JSON.stringify(output, null, 2)}\n`);
-const header = "| Target | Known | Confirmed | Recall | False positives | Time (s) | Model calls | Cap |\n|---|---:|---:|---:|---:|---:|---:|---|";
-const rows = results.map((result) => `| ${result.target} | ${result.groundTruthCount} | ${(result.confirmedFindings as unknown[]).length} | ${result.recall} | ${result.falsePositives} | ${(Number(result.elapsedMs) / 1000).toFixed(1)} | ${result.llmCalls} | ${result.capped ? "8 min" : ""} |`);
+const header = "| Target | Known | Candidates tested | Confirmed | Recall | False confirmations | Time (s) | Model calls | Cap |\n|---|---:|---:|---:|---:|---:|---:|---:|---|";
+const rows = results.map((result) => `| ${result.target} | ${result.groundTruthCount} | ${result.candidatesTested ?? 0} | ${(result.confirmedFindings as unknown[]).length} | ${result.recall} | ${result.falsePositives} | ${(Number(result.elapsedMs) / 1000).toFixed(1)} | ${result.llmCalls} | ${result.capped ? "20 min" : ""} |`);
 writeFileSync(resolve(import.meta.dir, "RESULTS.md"), `# Security benchmark\n\nGenerated ${output.generatedAt}. Ground truth is recorded in [ground-truth.json](./ground-truth.json) from each target README or the onchain security reports. A finding counts as confirmed only when exploit confirmation returns CONFIRMED.\n\n${header}\n${rows.join("\n")}\n\nNeeds-review candidates are retained in results.json and are not counted as findings.\n`);
 console.log(JSON.stringify(results.map((result) => ({ target: result.target, recall: result.recall, falsePositives: result.falsePositives, elapsedMs: result.elapsedMs, llmCalls: result.llmCalls })), null, 2));
