@@ -3,7 +3,7 @@ import { env } from "./config.ts";
 
 export type Payment = Record<string, unknown>;
 
-const mps = (path: string, init: RequestInit = {}) => fetch(`${env("MPS_URL", "http://127.0.0.1:3012/api/v1")}${path}`, {
+const mps = (path: string, init: RequestInit = {}) => fetch(`${env("MPS_URL", "http://127.0.0.1:3013/api/v1")}${path}`, {
   ...init,
   headers: { "content-type": "application/json", token: env("MPS_API_TOKEN"), ...(init.headers ?? {}) },
   signal: AbortSignal.timeout(20_000),

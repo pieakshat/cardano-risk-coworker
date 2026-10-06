@@ -1,4 +1,5 @@
 .env.local
+mps.env
 node_modules/
 work/
 results/
