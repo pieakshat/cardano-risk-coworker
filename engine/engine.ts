@@ -4,6 +4,7 @@ import type { Fetcher, Finding, RiskReport } from "./types.ts";
 const KOIOS = "https://api.koios.rest/api/v1";
 const MINSWAP = "https://api-mainnet-prod.minswap.org";
 const REGISTRY = "https://tokens.cardano.org/metadata";
+const BLOCKFROST = "https://cardano-mainnet.blockfrost.io/api/v0";
 const now = () => new Date().toISOString();
 const MAINNET_SYSTEM_START = Date.parse("2020-07-29T21:44:51Z");
 const registryValue = (value: any) => value && typeof value === "object" && "value" in value ? value.value : value;
@@ -104,6 +105,12 @@ async function resolve(ctx: Context, input: string) {
 }
 
 async function holders(ctx: Context, policyId: string, assetName: string) {
+  // Blockfrost returns the largest holders first in ~0.2 s (measured on MIN); Koios has no quantity ordering and took ~55 s
+  const blockfrost = process.env.BLOCKFROST_API_KEY_MAINNET;
+  if (blockfrost && !ctx.fixtureDir && ctx.fetcher === fetch) {
+    const top = await request(ctx, `blockfrost_asset_addresses_${policyId}${assetName}`, `${BLOCKFROST}/assets/${policyId}${assetName}/addresses?count=100&page=1&order=desc`, { headers: { project_id: blockfrost } });
+    if (Array.isArray(top)) return top.map((row: any) => ({ payment_address: row.address, quantity: row.quantity }));
+  }
   const rows: any[] = [];
   for (let page = 0; page < RULES.holderPageCap; page++) {
     const start = page * RULES.holderPageSize;
@@ -144,7 +151,7 @@ export async function analyzeWith(fetcher: Fetcher, input: string, fixtureDir?: 
     pools(ctx, resolved.unit),
   ]);
   const supply = BigInt(asset.total_supply ?? 0);
-  const concentration = { ...holderConcentration(addressRows.map((row: any) => ({ address: String(row.payment_address ?? row.address ?? ""), quantity: BigInt(row.quantity ?? 0) })), supply), sampled: addressRows.length >= RULES.holderPageSize * RULES.holderPageCap };
+  const concentration = { ...holderConcentration(addressRows.map((row: any) => ({ address: String(row.payment_address ?? row.address ?? ""), quantity: BigInt(row.quantity ?? 0) })), supply), sampled: addressRows.length >= 100 };
   const liquidity = poolRows as RiskReport["liquidity"]["pools"];
   const identity = registry && typeof registry === "object" && registry.name ? { registryName: registryValue(registry.name), ticker: registryValue(registry.ticker), decimals: registryValue(registry.decimals), url: registryValue(registry.url), inRegistry: true } : { inRegistry: false };
   const findings: Finding[] = [];
