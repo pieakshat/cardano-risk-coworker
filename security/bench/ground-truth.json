@@ -1,0 +1,46 @@
+{
+  "onchain-vulnerable": {
+    "projectDir": "/tmp/cot-onchain-ce28fef",
+    "source": "cost-of-trust/onchain SECURITY-codex.md and SECURITY-opus.md",
+    "bugs": [
+      "critical double satisfaction across vault and coverage outputs",
+      "Settle accepts a report after decide_by or an early INCONCLUSIVE report",
+      "signed report is not bound to the coverage task_ref"
+    ]
+  },
+  "onchain-fixed": {
+    "projectDir": "/tmp/cot-onchain-6a45d0a",
+    "source": "cost-of-trust/onchain SECURITY-FIXED.md",
+    "bugs": [
+      "critical double satisfaction across vault and coverage outputs",
+      "Settle accepts a report after decide_by or an early INCONCLUSIVE report",
+      "signed report is not bound to the coverage task_ref"
+    ],
+    "expectNoConfirmed": true
+  },
+  "00_hello_world": { "projectDir": "/tmp/cardano-ctf/00_hello_world", "source": "README.md", "bugs": ["password validation causes the intended unlock path to fail"] },
+  "01_sell_nft": { "projectDir": "/tmp/cardano-ctf/01_sell_nft", "source": "README.md", "bugs": ["one payment can satisfy multiple NFT sale outputs"] },
+  "02_vesting": { "projectDir": "/tmp/cardano-ctf/02_vesting", "source": "README.md", "bugs": ["vesting time predicate can be bypassed"] },
+  "03_multisig_treasury": { "projectDir": "/tmp/cardano-ctf/03_multisig_treasury", "source": "README.md", "bugs": ["treasury withdrawal does not enforce all owner signatures"] },
+  "04_tipjar": { "projectDir": "/tmp/cardano-ctf/04_tipjar", "source": "README.md", "bugs": ["tip jar state transition permits denial of service against future tips"] },
+  "05_purchase_offer": { "projectDir": "/tmp/cardano-ctf/05_purchase_offer", "source": "README.md", "bugs": ["purchase offer asset check permits collecting more than the offered amount"] },
+  "06_tipjar_v2": { "projectDir": "/tmp/cardano-ctf/06_tipjar_v2", "source": "README.md", "bugs": ["patched tip jar still permits a denial of service"] },
+  "07_multisig_treasury_v2": { "projectDir": "/tmp/cardano-ctf/07_multisig_treasury_v2", "source": "README.md", "bugs": ["validation-token or multisig treasury checks still permit unauthorized release"] },
+  "08_lending": { "projectDir": "/tmp/cardano-ctf/08_lending", "source": "README.md", "bugs": ["lending lifecycle validation permits an attacker to obtain lender ADA"] },
+  "09_multisig_treasury_v3": { "projectDir": "/tmp/cardano-ctf/09_multisig_treasury_v3", "source": "README.md", "bugs": ["remaining multisig treasury attack vector permits unauthorized release"] },
+  "10_king_of_cardano": { "projectDir": "/tmp/cardano-ctf/10_king_of_cardano", "source": "README.md", "bugs": ["king competition state transition permits preventing a legitimate overthrow"] },
+  "bank_00_core_invariant": { "projectDir": "/tmp/cardano-ctf/bank_00_core_invariant", "source": "README.md", "bugs": ["withdrawal omits the bank core invariant and can empty the bank"] },
+  "bank_01_deposit_vulnerability": { "projectDir": "/tmp/cardano-ctf/bank_01_deposit_vulnerability", "source": "README.md", "bugs": ["deposit into another account can take control of its funds"] },
+  "bank_02_mutual_exclusion": { "projectDir": "/tmp/cardano-ctf/bank_02_mutual_exclusion", "source": "README.md", "bugs": ["withdrawal does not bind the account identity to the manipulated transaction fields"] },
+  "bank_03_increase_balance": { "projectDir": "/tmp/cardano-ctf/bank_03_increase_balance", "source": "README.md", "bugs": ["account balance can increase without a matching deposit"] },
+  "bank_04_lifecycle": { "projectDir": "/tmp/cardano-ctf/bank_04_lifecycle", "source": "README.md", "bugs": ["account lifecycle or configuration transition permits draining the bank"] },
+  "bank_05_misconfiguration": { "projectDir": "/tmp/cardano-ctf/bank_05_misconfiguration", "source": "README.md", "bugs": ["configuration management permits a malicious configuration or validity-token setup"] },
+  "bank_06_free_mint": { "projectDir": "/tmp/cardano-ctf/bank_06_free_mint", "source": "README.md", "bugs": ["config-token minting is not one-shot or sufficiently constrained"] },
+  "bank_07_no_mint_no_problem": { "projectDir": "/tmp/cardano-ctf/bank_07_no_mint_no_problem", "source": "README.md", "bugs": ["account token can be obtained without minting it and used to drain the bank"] },
+  "bank_08_self_collision": { "projectDir": "/tmp/cardano-ctf/bank_08_self_collision", "source": "README.md", "bugs": ["self-collision permits obtaining an account token and draining the bank"] },
+  "bank_09_twin_bank": { "projectDir": "/tmp/cardano-ctf/bank_09_twin_bank", "source": "README.md", "bugs": ["multiple bank UTxOs violate an unenforced single-bank assumption"] },
+  "bank_10_transfer": { "projectDir": "/tmp/cardano-ctf/bank_10_transfer", "source": "README.md", "bugs": ["transfer path omits a security assumption and permits draining the bank"] },
+  "bank_11_cheques": { "projectDir": "/tmp/cardano-ctf/bank_11_cheques", "source": "README.md", "bugs": ["shareable cheque verification permits unauthorized withdrawal"] },
+  "bank_12_free_pass": { "projectDir": "/tmp/cardano-ctf/bank_12_free_pass", "source": "README.md", "bugs": ["a valid cheque can be shared or replayed as a free pass to the account"] },
+  "bank_13_almost_there": { "projectDir": "/tmp/cardano-ctf/bank_13_almost_there", "source": "README.md", "bugs": ["cheque ID or lifecycle validation still permits a cheque-based drain"] }
+}
