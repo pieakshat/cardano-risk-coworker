@@ -11,6 +11,11 @@ const nextConfig = {
     "/api/analyze": ["../engine/fixtures/**", "../engine/cache/**"],
     "/api/security": ["../security/bench/results.json"],
   },
+  // preflight/ lives outside web/ and Vercel installs only web/node_modules, so imports from there resolve here too.
+  webpack(config) {
+    config.resolve.modules = [...(config.resolve.modules ?? ["node_modules"]), path.join(repoRoot, "web", "node_modules")];
+    return config;
+  },
 };
 
 export default nextConfig;
