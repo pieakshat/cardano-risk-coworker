@@ -22,6 +22,7 @@ function deterministicMemo(report: RiskReport): string {
 async function askOpenRouter(report: RiskReport, retry: boolean): Promise<string> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) throw new Error("OPENROUTER_API_KEY is not set");
+  const signal = AbortSignal.timeout(30_000);
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -37,6 +38,7 @@ async function askOpenRouter(report: RiskReport, retry: boolean): Promise<string
       temperature: 0,
       messages: [{ role: "user", content: prompt(report, retry) }],
     }),
+    signal,
   });
   if (!response.ok) throw new Error(`OpenRouter returned ${response.status}`);
   const body = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
