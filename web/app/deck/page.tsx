@@ -73,6 +73,13 @@ const slides: Slide[] = [
     body: <div className={styles.columns}><Panel title="Seller returns 402">The agent reads the payment requirements and target.</Panel><Panel title="Risk Desk returns verdict" accent>The decision is an Assessment, not a model confidence score.</Panel><Panel title="Agent branches">INTERACT → pay seller<br />CONDITIONS → inspect<br />DO_NOT_INTERACT → refuse</Panel></div>,
   },
   {
+    // Source: agent-demo/runs/1791298553018.json; every hash confirmed by Koios preprod tx_status on 2026-10-06.
+    kicker: "PREPROD RUN",
+    title: "One seller paid. One refused.",
+    lead: "The agent paid the Risk Desk 1 ADA over x402 for each seller, then acted on the verdict.",
+    body: <div className={styles.columns}><Panel title="Seller A: INTERACT">Asks 2 ADA to an established wallet.<br /><br />Risk check <Tx h="fc053ce1c90ce352c944dff8afd5519d422b7995015302f1ea9f4afbc1246a31" /><br />Seller paid <Tx h="3866ed31eb44b4278abfdb897c377e3d69a6d5c9e8649df8a966ba11d252659a" /></Panel><Panel title="Seller B: DO_NOT_INTERACT" accent>Asks 5 tokens under an open mint policy, to an address first seen today.<br /><br />Risk check <Tx h="fad4fce27239cd0850bfa49100bebf00064780e9e908f4b61166d3461784a1ad" /><br />Blocking rule asset-mint-open. Seller not paid.</Panel></div>,
+  },
+  {
     kicker: "THE NETWORK",
     title: "Why Cardano and Masumi.",
     lead: "Agents do not need to understand Cardano before they spend. They can hire a Coworker that does.",
@@ -102,6 +109,10 @@ export default function DeckPage() {
     </section>
     <footer className={styles.controls}><button onClick={() => setIndex((value) => Math.max(value - 1, 0))} disabled={index === 0} aria-label="Previous slide">←</button><span><strong>{String(index + 1).padStart(2, "0")}</strong> / {String(slides.length).padStart(2, "0")}</span><button onClick={() => setIndex((value) => Math.min(value + 1, slides.length - 1))} disabled={index === slides.length - 1} aria-label="Next slide">→</button><span className={styles.hint}>Arrow keys / space</span></footer>
   </main>;
+}
+
+function Tx({ h }: { h: string }) {
+  return <a href={`https://preprod.cardanoscan.io/transaction/${h}`} target="_blank" rel="noreferrer">{h.slice(0, 8)}…{h.slice(-4)}</a>;
 }
 
 function Panel({ title, children, accent = false, dark = false }: { title: string; children: React.ReactNode; accent?: boolean; dark?: boolean }) {
