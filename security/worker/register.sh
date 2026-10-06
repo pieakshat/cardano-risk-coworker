@@ -25,5 +25,16 @@ if ! grep -q '^SOKOSUMI_COWORKER_API_KEY=' .env.local 2>/dev/null; then
   umask 077; printf 'SOKOSUMI_COWORKER_ID=%s\nSOKOSUMI_COWORKER_API_KEY=%s\n' "$coworker_id" "$key" > .env.local
   printf '%s' "$key" | ss runtime key-import --coworker-id "$coworker_id" --api-key-stdin >/dev/null
 fi
+tasks=$(ss tasks list --personal --json)
+if ! jq -e --arg id "$coworker_id" '.tasks[] | select(.coworkerId == $id and .name == "Aiken reviewer rehearsal")' <<<"$tasks" >/dev/null; then
+  rehearsal=$(ss tasks create --personal --coworker-id "$coworker_id" --name "Aiken reviewer rehearsal" --description '{"repoUrl":"https://github.com/Invariant-0/cardano-ctf","path":"bank_01_deposit_vulnerability"}' --status READY --json)
+  rehearsal_id=$(jq -r '.task.id // .id // empty' <<<"$rehearsal")
+else
+  rehearsal_id=$(jq -r --arg id "$coworker_id" '.tasks[] | select(.coworkerId == $id and .name == "Aiken reviewer rehearsal") | .id' <<<"$tasks" | head -n1)
+fi
+if [ ! -s worker.pid ] || ! kill -0 "$(cat worker.pid)" 2>/dev/null; then
+  (set -a; source .env.local; set +a; nohup bun src/worker.ts >worker.log 2>&1 & echo $! > worker.pid)
+fi
 printf '# Account-2 setup\n\n- Account: `%s`\n- Vendor: `%s`\n- Coworker: `%s`\n- Personal access: `requested`\n- Profile: `description, caption, tasks`\n' "$user_id" "$vendor_id" "$coworker_id" >"$record"
+printf '%s\n' "- Rehearsal Task: \`$rehearsal_id\` (READY, cardano-ctf level repo URL)" "- Worker PID: \`$(cat worker.pid)\`" >>"$record"
 echo "registered account=$user_id vendor=$vendor_id coworker=$coworker_id"
