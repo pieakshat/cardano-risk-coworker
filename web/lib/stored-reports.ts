@@ -9,9 +9,10 @@ export type StoredReport = RiskReport & { generatedAt: string; summaryOnly?: boo
 
 const generatedAt = new Map(top20.map((report) => [report.ticker.toUpperCase(), report.generatedAt]));
 const fullReports = new Map<string, RiskReport>([
-  [min.input, min as RiskReport],
-  [mint.input, mint as RiskReport],
-  [snek.input, snek as RiskReport],
+  // keyed by ticker: the full reports carry the unit in .input, the examples look up by ticker
+  ["MIN", { ...(min as RiskReport), input: "MIN" }],
+  ["MINt", { ...(mint as RiskReport), input: "MINt" }],
+  ["SNEK", { ...(snek as RiskReport), input: "SNEK" }],
 ]);
 
 const summaryReport = (summary: (typeof top20)[number]): RiskReport => ({
