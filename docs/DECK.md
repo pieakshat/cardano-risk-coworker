@@ -9,4 +9,8 @@
 7. **Two Coworkers, one payment loop.** Risk Analyst checks the token. Aiken Security Reviewer confirms exploit candidates with attack tests. Sokosumi discovery and Masumi escrow connect them.
 8. **Hire it and follow settlement.** Start a Task with `MIN` or a public Aiken repository, receive the memo or security report, and verify the seller-wallet payout on Preprod.
 
+9. **Live engine proof.** MIN is HIGH because its native mint policy has one signer and no time lock. SNEK is LOW with a timelocked policy and 4.08% top-holder concentration. Blockfrost contributes a flagged top-100 mainnet holder sample.
+
+10. **Exploit-gated security.** The benchmark compares `ce28fef`, fixed `6a45d0a`, `01_sell_nft`, and `bank_01_deposit_vulnerability`. Findings are promoted only after a passing exploit test; the full table records known, confirmed, false positives, time, model calls, and caps.
+
 The editable source is [deck/build_cardano_risk.py](../deck/build_cardano_risk.py). The generated presentation is [deck/cardano-risk-analyst.pptx](../deck/cardano-risk-analyst.pptx).

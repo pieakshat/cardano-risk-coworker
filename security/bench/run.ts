@@ -57,6 +57,8 @@ async function runTarget(name: string, target: RecordValue, scanner: RecordValue
     confirmedFindings: confirmations,
     needsReview,
     groundTruthCount: bugs.length,
+    known: bugs,
+    expectedNoConfirmed: Boolean(target.expectNoConfirmed),
     matchedFindings: matched.length,
     recall: bugs.length ? Number((matched.length / bugs.length).toFixed(3)) : 1,
     falsePositives: confirmations.length - matched.length,
@@ -65,16 +67,43 @@ async function runTarget(name: string, target: RecordValue, scanner: RecordValue
   };
 }
 
+async function runCapped(name: string, target: RecordValue, scanner: RecordValue, exploit: RecordValue): Promise<RecordValue> {
+  const capMs = 8 * 60 * 1000;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const capped = new Promise<RecordValue>((resolveCap) => {
+    timer = setTimeout(() => resolveCap({
+      target: name,
+      source: target.source,
+      groundTruthBugs: target.bugs ?? [],
+      known: target.bugs ?? [],
+      expectedNoConfirmed: Boolean(target.expectNoConfirmed),
+      candidates: 0,
+      confirmedFindings: [],
+      needsReview: [],
+      groundTruthCount: (target.bugs as string[] | undefined)?.length ?? 0,
+      matchedFindings: 0,
+      recall: 0,
+      falsePositives: 0,
+      elapsedMs: capMs,
+      llmCalls: 0,
+      capped: true,
+    }), capMs);
+  });
+  const result = await Promise.race([runTarget(name, target, scanner, exploit), capped]);
+  if (timer) clearTimeout(timer);
+  return result;
+}
+
 await waitForSecurityModules();
 const scanner = await import(modulePath(scannerCandidates)) as RecordValue;
 const exploit = await import(modulePath(exploitCandidates)) as RecordValue;
 const results: RecordValue[] = [];
 for (const [name, target] of Object.entries(manifest)) {
-  results.push(await runTarget(name, target, scanner, exploit));
+  results.push(await runCapped(name, target, scanner, exploit));
 }
 const output = { generatedAt: new Date().toISOString(), targets: results };
 writeFileSync(resolve(import.meta.dir, "results.json"), `${JSON.stringify(output, null, 2)}\n`);
-const header = "| Target | Ground truth | Confirmed | Recall | False positives | Time (s) | LLM calls |\n|---|---:|---:|---:|---:|---:|---:|";
-const rows = results.map((result) => `| ${result.target} | ${result.groundTruthCount} | ${(result.confirmedFindings as unknown[]).length} | ${result.recall} | ${result.falsePositives} | ${(Number(result.elapsedMs) / 1000).toFixed(1)} | ${result.llmCalls} |`);
+const header = "| Target | Known | Confirmed | Recall | False positives | Time (s) | Model calls | Cap |\n|---|---:|---:|---:|---:|---:|---:|---|";
+const rows = results.map((result) => `| ${result.target} | ${result.groundTruthCount} | ${(result.confirmedFindings as unknown[]).length} | ${result.recall} | ${result.falsePositives} | ${(Number(result.elapsedMs) / 1000).toFixed(1)} | ${result.llmCalls} | ${result.capped ? "8 min" : ""} |`);
 writeFileSync(resolve(import.meta.dir, "RESULTS.md"), `# Security benchmark\n\nGenerated ${output.generatedAt}. Ground truth is recorded in [ground-truth.json](./ground-truth.json) from each target README or the onchain security reports. A finding counts as confirmed only when exploit confirmation returns CONFIRMED.\n\n${header}\n${rows.join("\n")}\n\nNeeds-review candidates are retained in results.json and are not counted as findings.\n`);
 console.log(JSON.stringify(results.map((result) => ({ target: result.target, recall: result.recall, falsePositives: result.falsePositives, elapsedMs: result.elapsedMs, llmCalls: result.llmCalls })), null, 2));

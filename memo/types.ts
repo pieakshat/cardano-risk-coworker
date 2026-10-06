@@ -35,6 +35,7 @@ export type RiskReport = {
     top1Pct: number;
     top10Pct: number;
     scriptHeldPct: number;
+    sampled: boolean;
   };
   liquidity: {
     pools: Array<{ dex: string; tvlAda: number; pair: string }>;

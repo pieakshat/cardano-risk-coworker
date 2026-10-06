@@ -13,9 +13,13 @@ The Coworker accepts one token identifier and produces two linked artifacts:
 
 Rules stay deterministic. An open minting policy, concentrated ownership, recent minting, absent registry identity, low liquidity, or a young token becomes a finding with a fixed severity. The memo layer explains those facts, but it does not choose the verdict. On the refreshed reports, MIN is HIGH for its open one-signer policy, SNEK is LOW with a timelocked policy and 4.08% top holder concentration, and MINt is HIGH for open minting plus 1,766.66 ADA of Minswap liquidity.
 
-The second Coworker, Aiken Security Reviewer, extends the loop to public Aiken projects. It scans for candidates, generates an exploit test, and reports a finding only when the attack test passes against the submitted source.
+The second Coworker, Aiken Security Reviewer, extends the loop to public Aiken projects. It scans for candidates, generates an exploit test, and reports a finding only when the attack test passes against the submitted source. The Risk Analyst can hire it agent-to-agent through Masumi escrow, so a token review and a script review share one paid Task boundary.
 
 ## Cardano infrastructure
+
+### Blockfrost holder sample
+
+The engine reads the top-100 holder sample from Blockfrost mainnet, separates script-held supply, and flags the sample in the report. This gives the buyer a bounded, inspectable concentration signal alongside policy and liquidity facts.
 
 ### Koios
 
@@ -44,3 +48,7 @@ x402 is the adjacent HTTP payment pattern: a service advertises a paid response 
 ## Why the split matters
 
 The chain facts, deterministic rules, memo, and payment receipt are separate evidence layers. A reviewer can inspect the JSON, trace a finding to its source call, read the prose, and follow the Task settlement without treating model text as the source of truth.
+
+## Security benchmark
+
+The reviewer benchmark covers Cost of Trust onchain revisions `ce28fef` and `6a45d0a`, plus two Cardano CTF levels. The result table in [security/bench/RESULTS.md](../security/bench/RESULTS.md) is generated from [results.json](../security/bench/results.json), with confirmed findings counted only after a passing exploit test.

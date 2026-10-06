@@ -138,9 +138,16 @@ for i, (title, body) in enumerate([
 footer(s)
 
 s = slide(); heading(s, "Live proof and next action", 8)
-text(s, 0.7, 1.75, 11.8, 0.6, "Run the CLI, open the report, or hire the Coworker.", 24, True)
+text(s, 0.7, 1.75, 11.8, 0.6, "Run the CLI, open the report, or hire either Coworker.", 24, True)
 card(s, 0.7, 2.7, 5.7, 2.35, "Try a token", "bun engine/cli.ts MIN\nbun engine/cli.ts SNEK\n\nEach command prints the JSON report used by the memo.", True)
-card(s, 6.8, 2.7, 5.8, 2.35, "Follow the payment", "Sokosumi Task\n→ MPS status\n→ memo result\n→ seller-wallet settlement", False)
+card(s, 6.8, 2.7, 5.8, 2.35, "Security gate", "Aiken Security Reviewer\nagent-to-agent Masumi hire\nexploit test must pass\nbenchmark: known / confirmed / cap", False)
+footer(s)
+
+s = slide(); heading(s, "Live verdicts and holder evidence", 9)
+card(s, 0.7, 1.8, 3.75, 2.8, "MIN · HIGH", "Native mint policy\n1 required signer\nNo time lock\nBlockfrost top-100 sample flagged", True)
+card(s, 4.8, 1.8, 3.75, 2.8, "SNEK · LOW", "Timelocked native policy\n999 holders\nTop 1: 4.08%\nTop 10: 20.80%")
+card(s, 8.9, 1.8, 3.75, 2.8, "Benchmark", "ce28fef + fixed 6a45d0a\n01_sell_nft\nbank_01_deposit_vulnerability\nPassing exploit tests only", False)
+text(s, 0.7, 5.35, 11.9, 0.65, "The Risk Analyst hires the Aiken Security Reviewer through Masumi escrow when a public script needs an exploit-gated review.", 18, True, INK, PP_ALIGN.CENTER)
 footer(s)
 
 out = Path(__file__).parent / "cardano-risk-analyst.pptx"

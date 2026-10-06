@@ -18,6 +18,7 @@ type Block = {
 function filesUnder(root: string): string[] {
   const result: string[] = []
   for (const name of readdirSync(root)) {
+    if ([".git", "build", "work"].includes(name)) continue
     const path = join(root, name)
     const stat = statSync(path)
     if (stat.isDirectory()) result.push(...filesUnder(path))

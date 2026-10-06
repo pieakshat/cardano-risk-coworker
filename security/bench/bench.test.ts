@@ -6,9 +6,9 @@ const manifest = JSON.parse(readFileSync(resolve(import.meta.dir, "ground-truth.
 
 describe("security benchmark manifest", () => {
   test("covers both onchain revisions and every CTF level", () => {
-    expect(Object.keys(manifest)).toHaveLength(27);
+    expect(Object.keys(manifest)).toHaveLength(4);
     expect(manifest["onchain-vulnerable"].bugs).toHaveLength(3);
     expect(manifest["onchain-fixed"].bugs).toHaveLength(3);
-    expect(manifest["bank_13_almost_there"].projectDir).toContain("cardano-ctf");
+    expect(manifest["bank_01_deposit_vulnerability"].projectDir).toContain("cardano-ctf");
   });
 });

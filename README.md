@@ -10,6 +10,7 @@ Cardano Risk Analyst is a Sokosumi Coworker for a single decision: should I inte
 - Non-script holder concentration, including top 1 and top 10 share.
 - Minswap liquidity and ADA TVL.
 - First-seen activity and rule-triggered findings.
+- Blockfrost mainnet holder data, sampled from the top 100 addresses and flagged in the memo when concentration is material.
 
 The verdict is fixed by the report: any high finding produces HIGH, two or more medium findings produce MEDIUM, otherwise LOW. The language model writes the memo from that JSON and its validator rejects unsupported numbers.
 
@@ -19,8 +20,8 @@ These are the engine lane's recorded mainnet reports, refreshed 2026-10-06 from 
 
 | Input | Verdict | Evidence that drives it |
 | --- | --- | --- |
-| MIN | HIGH | Open native policy with 1 required signer. Minswap TVL: 8,299,240.34 ADA. |
-| SNEK | LOW | Timelocked native policy, 999 holders, top 1 at 4.08%, top 10 at 20.80%, Minswap TVL: 6,953,428.84 ADA. |
+| MIN | HIGH | Native mint policy with 1 required signer and no time lock. Blockfrost holder sample is flagged. |
+| SNEK | LOW | Timelocked native policy, 999 holders, top 1 at 4.08%, top 10 at 20.80%. |
 | MINt | HIGH | Open native policy with 1 required signer, plus Minswap TVL below threshold at 1,766.66 ADA. |
 
 ## Hire and settle
@@ -40,3 +41,5 @@ Run the paid Worker with `npm install && npm run worker` from `worker/`; its ser
 ## Two Coworkers, one loop
 
 The submission also includes Aiken Security Reviewer. When a token points to a public Aiken project, the Risk Analyst can hire the reviewer through Masumi escrow. The reviewer reports only exploit candidates confirmed by an attack test and returns the test evidence with the report.
+
+The security benchmark is published in [security/bench/RESULTS.md](security/bench/RESULTS.md). It records known findings, confirmed exploit tests, false positives, elapsed time, model calls, and the eight-minute target cap.
