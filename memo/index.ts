@@ -52,7 +52,7 @@ async function askOpenRouter(facts: ReturnType<typeof memoFacts>, retry: boolean
   if (!key) throw new Error("OPENROUTER_API_KEY is not set");
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "HTTP-Referer": "https://cardano-risk-coworker-taupe.vercel.app", "X-Title": "Cardano Risk Analyst" },
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "HTTP-Referer": "https://cardano-risk-coworker.vercel.app", "X-Title": "Cardano Risk Analyst" },
     body: JSON.stringify({ model, models: [model, fallbackModel], max_tokens: 1200, temperature: 0, messages: [{ role: "user", content: prompt(facts, retry) }] }),
     // reasoning models spend most of their budget thinking; 30 s cut them off and forced the template every time
     signal: AbortSignal.timeout(45_000),
