@@ -9,15 +9,6 @@ loadEnv();
 
 type RecordValue = Record<string, unknown>;
 
-const run = (args: string[]) => new Promise<string>((resolve, reject) => {
-  const child = spawn("sokosumi", ["--preprod", ...args, "--json"], { env: process.env });
-  let out = "";
-  let err = "";
-  child.stdout.on("data", (chunk) => { out += chunk; });
-  child.stderr.on("data", (chunk) => { err += chunk; });
-  child.on("close", (code) => code === 0 ? resolve(out) : reject(new Error(err || `sokosumi exited ${code}`)));
-});
-
 const settlement = (input: string) => {
   const match = input.match(/^pay\s+(\d+)\s+(\S+)\s+to\s+(\S+)\s+from\s+(\S+)$/i);
   if (!match) throw new Error('Settlement Task must match: pay <N> <asset> to <x402 url> from <asset>');
@@ -41,6 +32,19 @@ const core = (path: string, init: RequestInit = {}) => fetch(`${env("SOKOSUMI_AP
   signal: AbortSignal.timeout(20_000),
 });
 
+function tasks(payload: unknown): RecordValue[] {
+  if (Array.isArray(payload)) return payload as RecordValue[];
+  if (!payload || typeof payload !== "object") return [];
+  const record = payload as RecordValue;
+  return (record.tasks ?? record.data ?? []) as RecordValue[];
+}
+
+async function readyTasks(coworker: string): Promise<RecordValue[]> {
+  const response = await core(`/tasks?coworkerId=${encodeURIComponent(coworker)}&status=READY`);
+  if (!response.ok) throw new Error(`Sokosumi tasks HTTP ${response.status}`);
+  return tasks(await response.json());
+}
+
 async function taskEvent(taskId: string, body: RecordValue): Promise<RecordValue> {
   const response = await core(`/tasks/${encodeURIComponent(taskId)}/events`, { method: "POST", body: JSON.stringify(body) });
   const payload = await response.json() as { data?: RecordValue; message?: string };
@@ -56,22 +60,35 @@ function taskInput(task: RecordValue): string {
   } catch { return value.trim(); }
 }
 
-async function once(): Promise<void> {
-  const coworker = env("SOKOSUMI_COWORKER_ID");
-  if (!coworker) throw new Error("SOKOSUMI_COWORKER_ID is required");
-  const raw = await run(["tasks", "list", "--personal"]);
-  const parsed = JSON.parse(raw) as RecordValue[] | { tasks?: RecordValue[]; data?: RecordValue[] };
-  const tasks = Array.isArray(parsed) ? parsed : parsed.tasks ?? parsed.data ?? [];
-  for (const task of tasks.filter((item) => item.status === "READY" && item.coworkerId === coworker)) {
-    const id = String(task.id);
+function tokenInput(value: string): string | null {
+  return value.match(/[0-9a-f]{56,128}/i)?.[0] ?? value.match(/\b[A-Z][A-Z0-9]{1,15}\b/)?.[0] ?? null;
+}
+
+async function failTask(id: string, error: unknown): Promise<void> {
+  const message = error instanceof Error ? error.message : String(error);
+  try { await taskEvent(id, { status: "FAILED", comment: message }); }
+  catch (failure) { console.error(`Task ${id} failure event failed: ${failure instanceof Error ? failure.message : failure}`); }
+  console.error(`Task ${id} failed: ${message}`);
+}
+
+async function processTask(task: RecordValue): Promise<void> {
+  const id = String(task.id);
+  try {
     const input = taskInput(task);
-    if (!input) throw new Error(`Task ${id} has no token input`);
     const isSettlement = /^pay\s+/i.test(input);
+    const token = isSettlement ? input : tokenInput(input);
+    if (!token) {
+      const result = "Usage: submit a Cardano token ticker (for example, SNEK) or a 56+ character asset unit.";
+      await mkdir("results", { recursive: true });
+      await writeFile(`results/${id}.txt`, result, "utf8");
+      await taskEvent(id, { status: "COMPLETED", comment: result });
+      return;
+    }
     const payment = !isSettlement && env("ENABLE_MPS_PAYMENTS") === "true" ? await createPayment(input) : null;
     await taskEvent(id, { status: "RUNNING", ...(payment ? { masumiPayment: payment.data ?? payment } : {}) });
     if (payment) await waitForPayment(payment);
     const result = isSettlement ? await settlement(input) : await (async () => {
-      const report = await analyze(input);
+      const report = await analyze(token);
       const memo = await writeMemo(report);
       return `${memo.markdown}\n\n--- risk-report.json ---\n${JSON.stringify(memo.json, null, 2)}\n`;
     })();
@@ -79,7 +96,13 @@ async function once(): Promise<void> {
     await writeFile(`results/${id}.txt`, result, "utf8");
     if (payment) await submitResult(payment, result);
     await taskEvent(id, { status: "COMPLETED", comment: result });
-  }
+  } catch (error) { await failTask(id, error); }
+}
+
+async function once(): Promise<void> {
+  const coworker = env("SOKOSUMI_COWORKER_ID");
+  if (!coworker) throw new Error("SOKOSUMI_COWORKER_ID is required");
+  for (const task of (await readyTasks(coworker)).filter((item) => item.status === "READY" && item.coworkerId === coworker)) await processTask(task);
 }
 
 async function main(): Promise<void> {

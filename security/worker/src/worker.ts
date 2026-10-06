@@ -19,6 +19,13 @@ async function taskEvent(taskId: string, event: RecordValue): Promise<void> {
   if (!response.ok) throw new Error(`Sokosumi event HTTP ${response.status}`);
 }
 
+async function failTask(id: string, error: unknown): Promise<void> {
+  const message = error instanceof Error ? error.message : String(error);
+  try { await taskEvent(id, { status: "FAILED", comment: message }); }
+  catch (failure) { console.error(`Task ${id} failure event failed: ${failure instanceof Error ? failure.message : failure}`); }
+  console.error(`Task ${id} failed: ${message}`);
+}
+
 function tasks(payload: unknown): RecordValue[] {
   if (Array.isArray(payload)) return payload as RecordValue[];
   if (!payload || typeof payload !== "object") return [];
@@ -40,13 +47,17 @@ function taskInput(task: RecordValue): string {
   } catch { return raw.trim(); }
 }
 
-async function once(): Promise<void> {
-  const coworker = env("SOKOSUMI_COWORKER_ID");
-  if (!coworker || !env("SOKOSUMI_COWORKER_API_KEY")) throw new Error("SOKOSUMI_COWORKER_ID and SOKOSUMI_COWORKER_API_KEY are required");
-  for (const task of (await readyTasks()).filter((item) => String(item.coworkerId) === coworker)) {
-    const id = String(task.id);
+async function processTask(task: RecordValue): Promise<void> {
+  const id = String(task.id);
+  try {
     const input = taskInput(task);
-    if (!input) throw new Error(`Task ${id} has no repository input`);
+    if (!/https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+/i.test(input)) {
+      const result = "Usage: submit a public https://github.com/OWNER/REPOSITORY URL, optionally with a repository path.";
+      await mkdir("results", { recursive: true });
+      await writeFile(`results/${id}.txt`, result, "utf8");
+      await taskEvent(id, { status: "COMPLETED", comment: result });
+      return;
+    }
     const payment = env("ENABLE_MPS_PAYMENTS") === "true" ? await createPayment(input) : null;
     await taskEvent(id, { status: "RUNNING", ...(payment ? { masumiPayment: payment.data ?? payment } : {}) });
     if (payment) await waitForPayment(payment);
@@ -58,7 +69,13 @@ async function once(): Promise<void> {
     await writeFile(`results/${id}.txt`, result, "utf8");
     if (payment) await submitResult(payment, result);
     await taskEvent(id, { status: "COMPLETED", comment: result });
-  }
+  } catch (error) { await failTask(id, error); }
+}
+
+async function once(): Promise<void> {
+  const coworker = env("SOKOSUMI_COWORKER_ID");
+  if (!coworker || !env("SOKOSUMI_COWORKER_API_KEY")) throw new Error("SOKOSUMI_COWORKER_ID and SOKOSUMI_COWORKER_API_KEY are required");
+  for (const task of (await readyTasks()).filter((item) => String(item.coworkerId) === coworker)) await processTask(task);
 }
 
 async function main(): Promise<void> {

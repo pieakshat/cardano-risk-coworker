@@ -31,6 +31,7 @@ function blockchainIdentifier(payment: Payment): string {
 
 export async function createPayment(input: string): Promise<Payment> {
   const now = Date.now();
+  const minutes = (name: string, fallback: number) => Number(env(name, String(fallback))) * 60_000;
   return json("/payment", { method: "POST", body: JSON.stringify({
     network: "Preprod",
     paymentSourceType: env("MPS_PAYMENT_SOURCE_TYPE", "Web3CardanoV2"),
@@ -39,10 +40,10 @@ export async function createPayment(input: string): Promise<Payment> {
     inputHash: sha256(input),
     identifierFromPurchaser: randomBytes(10).toString("hex"),
     RequestedFunds: [{ amount: env("MPS_TASK_AMOUNT", "1000000"), unit: env("MPS_TASK_UNIT") }],
-    payByTime: new Date(now + 10 * 60_000).toISOString(),
-    submitResultTime: new Date(now + 20 * 60_000).toISOString(),
-    unlockTime: new Date(now + 25 * 60_000).toISOString(),
-    externalDisputeUnlockTime: new Date(now + 30 * 60_000).toISOString(),
+    payByTime: new Date(now + minutes("MPS_PAY_BY_MINUTES", 20)).toISOString(),
+    submitResultTime: new Date(now + minutes("MPS_SUBMIT_RESULT_MINUTES", 45)).toISOString(),
+    unlockTime: new Date(now + minutes("MPS_UNLOCK_MINUTES", 60)).toISOString(),
+    externalDisputeUnlockTime: new Date(now + minutes("MPS_EXTERNAL_DISPUTE_MINUTES", 75)).toISOString(),
   }) });
 }
 

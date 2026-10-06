@@ -9,7 +9,10 @@ const jobs = new Map<string, { repoUrl: string; payment: Record<string, unknown>
 async function body(request: IncomingMessage): Promise<Record<string, unknown>> {
   const chunks: Buffer[] = [];
   for await (const chunk of request as AsyncIterable<Uint8Array>) chunks.push(Buffer.from(chunk));
-  const value = JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>;
+  let value: Record<string, unknown>;
+  try { value = JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>; }
+  catch { throw new Error("request body must be valid JSON"); }
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("request body must be a JSON object");
   if (!value.repoUrl && !value.repo) throw new Error("repoUrl is required");
   return value;
 }

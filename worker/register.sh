@@ -32,7 +32,7 @@ ss coworkers connect "$coworker_id" --vendor-id "$vendor_id" --workspace-id "$or
 ss coworkers update "$coworker_id" --name "$worker_name" --description "Analyzes a Cardano token identifier with live chain evidence, deterministic checks, and a cited risk memo." --json >"$json"
 if ! grep -q "^SOKOSUMI_COWORKER_ID=$coworker_id$" .env.local 2>/dev/null; then
   ss coworkers api-key "$coworker_id" --json >"$json"; key=$(jq -r '.apiKey.token // .token' "$json"); test -n "$key" && test "$key" != null
-  umask 077; printf 'SOKOSUMI_COWORKER_ID=%s\nSOKOSUMI_COWORKER_API_KEY=%s\n' "$coworker_id" "$key" > .env.local
+  umask 077; printf 'SOKOSUMI_API_URL=https://api.preprod.sokosumi.com/v1\nSOKOSUMI_COWORKER_ID=%s\nSOKOSUMI_COWORKER_API_KEY=%s\n' "$coworker_id" "$key" > .env.local
   printf '%s' "$key" | ss runtime key-import --coworker-id "$coworker_id" --api-key-stdin >/dev/null
 fi
 org_tasks=$(ss tasks list --organization-slug "$organization_slug" --json)

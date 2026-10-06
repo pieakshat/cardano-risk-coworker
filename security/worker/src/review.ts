@@ -27,8 +27,12 @@ function command(file: string, args: string[], cwd?: string): Promise<string> {
 
 export function parseInput(input: string): { repoUrl: string; path?: string } {
   let value: RecordValue;
-  try { value = JSON.parse(input) as RecordValue; } catch { value = { repoUrl: input.trim() }; }
-  const repoUrl = String(value.repoUrl ?? value.repo ?? "").trim();
+  try {
+    const parsed = JSON.parse(input) as unknown;
+    value = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as RecordValue : { repoUrl: input.trim() };
+  } catch { value = { repoUrl: input.trim() }; }
+  const rawRepoUrl = String(value.repoUrl ?? value.repo ?? "").trim();
+  const repoUrl = rawRepoUrl.match(/https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?\/?/)?.[0] ?? rawRepoUrl;
   const path = typeof value.path === "string" ? value.path.replace(/^\/+/, "") : undefined;
   if (!/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?\/?$/.test(repoUrl)) throw new Error("repoUrl must be a public https GitHub repository URL");
   if (path && (path.includes("..") || path.startsWith("/"))) throw new Error("path must stay inside the repository");
