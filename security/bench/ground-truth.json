@@ -1,6 +1,6 @@
 {
   "onchain-vulnerable": {
-    "projectDir": "/tmp/cot-onchain-ce28fef",
+    "projectDir": "/tmp/cot-onchain-ce28fef/onchain",
     "source": "cost-of-trust/onchain SECURITY-codex.md and SECURITY-opus.md",
     "bugs": [
       "critical double satisfaction across vault and coverage outputs",
@@ -9,7 +9,7 @@
     ]
   },
   "onchain-fixed": {
-    "projectDir": "/tmp/cot-onchain-6a45d0a",
+    "projectDir": "/tmp/cot-onchain-6a45d0a/onchain",
     "source": "cost-of-trust/onchain SECURITY-FIXED.md",
     "bugs": [
       "critical double satisfaction across vault and coverage outputs",
