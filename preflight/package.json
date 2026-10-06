@@ -1,0 +1,8 @@
+{
+  "name": "cardano-risk-coworker-preflight",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@noble/hashes": "^2.0.1"
+  }
+}

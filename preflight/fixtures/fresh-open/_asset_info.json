@@ -1,0 +1,21 @@
+[
+  {
+    "policy_id": "e675b46e4d2242c991a8932a99db3044e80515ae14b4c4ccf6b3f4c9",
+    "asset_name": "0014df10745553444d",
+    "asset_name_ascii": "\\000\u0014\\337\u0010tUSDM",
+    "fingerprint": "asset13vxxx5fuzj88pqvwad5t8tna9h6hcw7d6fmzjw",
+    "minting_tx_hash": "17c01db02b7ebaf34528188e6007c7beefa118c4b2a74d4a766a8fa4fc73e297",
+    "total_supply": "20120457000000",
+    "mint_cnt": 39,
+    "burn_cnt": 4,
+    "creation_time": 1770417320,
+    "minting_tx_metadata": {
+      "674": {
+        "msg": [
+          "USDM Mint"
+        ]
+      }
+    },
+    "token_registry_metadata": null
+  }
+]
