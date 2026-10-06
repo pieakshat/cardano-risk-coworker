@@ -11,7 +11,7 @@ The Coworker accepts one token identifier and produces two linked artifacts:
 1. A `RiskReport` assembled from live Cardano and market data.
 2. A memo written only from that report, with source calls and exact numbers.
 
-Rules stay deterministic. An open minting policy, concentrated ownership, recent minting, absent registry identity, low liquidity, or a young token becomes a finding with a fixed severity. The memo layer explains those facts, but it does not choose the verdict. On the refreshed reports, MIN is HIGH for its open one-signer policy, SNEK is LOW with a timelocked policy and 4.08% top holder concentration, and MINt is HIGH for open minting plus 1,766.66 ADA of Minswap liquidity.
+Rules stay deterministic. An open minting policy, concentrated ownership, recent minting, absent registry identity, low liquidity, or a young token becomes a finding with a fixed severity. The memo layer explains those facts, but it does not choose the verdict. On the refreshed reports, MIN is HIGH for its open one-signer policy, SNEK is LOW with a timelocked policy and 2.39% top holder concentration across the largest 88 holder addresses sampled, and MINt is HIGH for open minting plus 1,766.66 ADA of Minswap liquidity.
 
 The second Coworker, Aiken Security Reviewer, extends the loop to public Aiken projects. It scans for candidates, generates an exploit test, and reports a finding only when the attack test passes against the submitted source. The Risk Analyst can hire it agent-to-agent through Masumi escrow, so a token review and a script review share one paid Task boundary.
 
@@ -49,6 +49,6 @@ x402 is the adjacent HTTP payment pattern: a service advertises a paid response 
 
 The chain facts, deterministic rules, memo, and payment receipt are separate evidence layers. A reviewer can inspect the JSON, trace a finding to its source call, read the prose, and follow the Task settlement without treating model text as the source of truth.
 
-## Security benchmark
+## Exploit-gated security review
 
-The reviewer benchmark covers Cost of Trust onchain revisions `ce28fef` and `6a45d0a`, plus two Cardano CTF levels. The result table in [security/bench/RESULTS.md](../security/bench/RESULTS.md) is generated from [results.json](../security/bench/results.json), with confirmed findings counted only after a passing exploit test.
+The live Security Reviewer scans a public Aiken repository, turns scanner candidates into attack tests, and runs each test against the submitted source. A finding is returned only when the exploit test passes, with the rule, file and line, attack shape, and test evidence attached. Candidates without a passing exploit test stay in review material and do not become findings.

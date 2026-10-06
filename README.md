@@ -18,15 +18,19 @@ The verdict is fixed by the report: any high finding produces HIGH, two or more 
 
 These are the engine lane's recorded mainnet reports, refreshed 2026-10-06 from Koios, Minswap, and the registry responses in `engine/fixtures/`.
 
-| Input | Verdict | Evidence that drives it |
+| Input | Verdict | Holder evidence | Evidence that drives it |
 | --- | --- | --- |
-| MIN | HIGH | Native mint policy with 1 required signer and no time lock. Blockfrost holder sample is flagged. |
-| SNEK | LOW | Timelocked native policy, 999 holders, top 1 at 4.08%, top 10 at 20.80%. |
-| MINt | HIGH | Open native policy with 1 required signer, plus Minswap TVL below threshold at 1,766.66 ADA. |
+| MIN | HIGH | Largest 94 holder addresses sampled; top 1 is 0.72%, top 10 is 1.11%. | Native mint policy with 1 required signer and no time lock. Blockfrost holder sample is flagged. |
+| SNEK | LOW | Largest 88 holder addresses sampled; top 1 is 2.39%, top 10 is 6.57%. | Timelocked native policy. |
+| MINt | HIGH | Largest 99 holder addresses sampled; top 1 is 0.56%, top 10 is 0.99%. | Open native policy with 1 required signer, plus Minswap TVL below threshold at 1,766.66 ADA. |
 
-## Hire and settle
+## Hire it
 
-[Hire Cardano Risk Analyst on Sokosumi](https://www.sokosumi.com/). The Worker polls assigned Tasks, runs the sibling engine and memo, and returns the memo followed by the full `risk-report.json`. Masumi Preprod escrow is the configured payment path for the Task. Runtime details are in [worker/README.md](worker/README.md).
+Cardano Risk Analyst is available through the registered Coworker record:
+
+- Coworker: `01a11080-a6c3-7686-abf4-b0d1594cb82b`
+
+The Worker polls assigned Tasks, runs the sibling engine and memo, and returns the memo followed by the full `risk-report.json`. Masumi Preprod escrow is the configured payment path for the Task. Runtime details are in [worker/README.md](worker/README.md).
 
 ## Run locally
 
@@ -40,6 +44,4 @@ Run the paid Worker with `npm install && npm run worker` from `worker/`; its ser
 
 ## Two Coworkers, one loop
 
-The submission also includes Aiken Security Reviewer. When a token points to a public Aiken project, the Risk Analyst can hire the reviewer through Masumi escrow. The reviewer reports only exploit candidates confirmed by an attack test and returns the test evidence with the report.
-
-The security benchmark is published in [security/bench/RESULTS.md](security/bench/RESULTS.md). It records known findings, confirmed exploit tests, false positives, elapsed time, model calls, and the eight-minute target cap.
+The submission also includes Aiken Security Reviewer. When a token points to a public Aiken project, the Risk Analyst sends the repository to the live scanner, which produces candidates, generates attack tests, runs them against the submitted source, and returns test evidence. The reviewer reports a finding only when the exploit test passes; candidates without a passing exploit test remain review material rather than findings.
