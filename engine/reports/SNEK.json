@@ -1,0 +1,369 @@
+{
+  "input": "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
+  "unit": "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
+  "policyId": "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f",
+  "assetNameAscii": "SNEK",
+  "fingerprint": "asset108xu02ckwrfc8qs9d97mgyh4kn8gdu9w8f5sxk",
+  "identity": {
+    "registryName": "Snek",
+    "ticker": "SNEK",
+    "decimals": 0,
+    "url": "https://www.snek.com/",
+    "inRegistry": true
+  },
+  "policy": {
+    "scriptType": "native",
+    "timelockedBefore": "2023-06-17T04:09:32.000Z",
+    "requiredSigners": 1,
+    "mintOpen": false
+  },
+  "supply": {
+    "total": "76715880000",
+    "mintTxCount": 1,
+    "burnTxCount": 0
+  },
+  "holders": {
+    "count": 999,
+    "top1Pct": 4.082110213687179,
+    "top10Pct": 20.80289327972253,
+    "scriptHeldPct": 0.00007893411377149034
+  },
+  "liquidity": {
+    "pools": [
+      {
+        "dex": "Minswap",
+        "tvlAda": 4250790.305996,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 2039808.5198497535,
+        "pair": "NIGHT/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 381372.47253237135,
+        "pair": "USDCx/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 268287.1462,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 7143.225116797411,
+        "pair": "MIN/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 5281.071745056077,
+        "pair": "SHARL/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 382.3014070791537,
+        "pair": "PANDA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 125.91645219710007,
+        "pair": "HOSKY/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 68.61457638511635,
+        "pair": "ATH/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 56.84933073782169,
+        "pair": "FADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 39.10619940903406,
+        "pair": "MIN/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 32.763398421917096,
+        "pair": "BANK/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 21.357092850581612,
+        "pair": "USDM/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 5.48548386829903,
+        "pair": "ADUH/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 3.464648032050831,
+        "pair": "AGIX/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 3.2600933083302235,
+        "pair": "DJED/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 1.9804714261216516,
+        "pair": "BUBBLE/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 1.5900074036795255,
+        "pair": "WMT/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.916838393751574,
+        "pair": "HOSKY/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.802771197749225,
+        "pair": "DEAN/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.6984896892822583,
+        "pair": "FREN/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.5983888954711173,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.13199064903156224,
+        "pair": "GMGM/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.13049909904139095,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.030596736968581943,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.014840521929681359,
+        "pair": "APEX/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.010645747071165838,
+        "pair": "SKULL/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.009465943481271045,
+        "pair": "BBSNEK/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.009177494049138183,
+        "pair": "KIDZ/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.007357403500240678,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.006501983644806864,
+        "pair": "LQ/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.006109303958221034,
+        "pair": "MON/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.005038679958485873,
+        "pair": "CHAD/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.004556360828874984,
+        "pair": "END/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.004319329974098442,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0037731025649734348,
+        "pair": "SNEKGO/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.003030028857132525,
+        "pair": "GYROS/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0019750086980129936,
+        "pair": "CAT/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0019262059156251296,
+        "pair": "snekgirl/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0019004062002148856,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.001361142078434454,
+        "pair": "USDM/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0008914924241419349,
+        "pair": "$PURR/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0008894144120463942,
+        "pair": "ROCKET/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0008579745208190755,
+        "pair": "snekgirl/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0008362773187135693,
+        "pair": "CLAY/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0008250032275913469,
+        "pair": "Wifejak/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0006988777816412936,
+        "pair": "WMTX/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0002659407994062054,
+        "pair": "DEAN/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0001913418391470721,
+        "pair": "DCD/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00017002006666047825,
+        "pair": "STRCH/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00012009460986672615,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00004017566519029951,
+        "pair": "SOC/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0000318945628959515,
+        "pair": "PROXIE/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00002786129653793103,
+        "pair": "PEPE BLUE/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00002328605083272961,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0000126606778239046,
+        "pair": "PUDGY/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00000247511979268699,
+        "pair": "ADA/SNEK"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 4.37083294932e-8,
+        "pair": "FLEsH/SNEK"
+      }
+    ],
+    "totalTvlAda": 6953428.838039255
+  },
+  "activity": {
+    "firstSeen": "2023-04-26T03:40:13.000Z"
+  },
+  "findings": [],
+  "verdict": "LOW",
+  "sources": [
+    {
+      "call": "asset_info_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
+      "at": "2026-10-06T06:41:15.052Z"
+    },
+    {
+      "call": "registry_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
+      "at": "2026-10-06T06:41:15.053Z"
+    },
+    {
+      "call": "asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f_534e454b_0",
+      "at": "2026-10-06T06:41:15.053Z"
+    },
+    {
+      "call": "script_info_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f",
+      "at": "2026-10-06T06:41:15.053Z"
+    },
+    {
+      "call": "minswap_pools_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
+      "at": "2026-10-06T06:41:15.053Z"
+    },
+    {
+      "call": "asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f_534e454b_1",
+      "at": "2026-10-06T06:41:15.058Z"
+    },
+    {
+      "call": "asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f_534e454b_2",
+      "at": "2026-10-06T06:41:15.059Z"
+    },
+    {
+      "call": "asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f_534e454b_3",
+      "at": "2026-10-06T06:41:15.059Z"
+    },
+    {
+      "call": "asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f_534e454b_4",
+      "at": "2026-10-06T06:41:15.060Z"
+    }
+  ]
+}

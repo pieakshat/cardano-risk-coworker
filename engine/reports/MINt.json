@@ -1,0 +1,126 @@
+{
+  "input": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
+  "unit": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
+  "policyId": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6",
+  "assetNameAscii": "MINt",
+  "fingerprint": "asset12h0hazu0j4dvvk46rhycfg7zl9t900nl3c5rvu",
+  "identity": {
+    "registryName": "Minswap",
+    "ticker": "MIN",
+    "decimals": 6,
+    "url": "https://minswap.org/",
+    "inRegistry": true
+  },
+  "policy": {
+    "scriptType": "native",
+    "requiredSigners": 1,
+    "mintOpen": true
+  },
+  "supply": {
+    "total": "45785504224419",
+    "mintTxCount": 1,
+    "burnTxCount": 1
+  },
+  "holders": {
+    "count": 1000,
+    "top1Pct": 0.20996141724203077,
+    "top10Pct": 2.0631770840064108,
+    "scriptHeldPct": 0
+  },
+  "liquidity": {
+    "pools": [
+      {
+        "dex": "Minswap",
+        "tvlAda": 1585.366348,
+        "pair": "ADA/MINt"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 88.4797404899905,
+        "pair": "MIN/MINt"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 63.78831337225352,
+        "pair": "ADA/MINt"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 15.32335153085329,
+        "pair": "WMT/MINt"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 13.651635649098498,
+        "pair": "MELD/MINt"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.05012129849485728,
+        "pair": "MELD/MINt"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 5.646379136436e-8,
+        "pair": "SUNDAE/MINt"
+      }
+    ],
+    "totalTvlAda": 1766.6595103971542
+  },
+  "activity": {
+    "firstSeen": "2021-12-07T11:03:39.000Z"
+  },
+  "findings": [
+    {
+      "id": "mint-open",
+      "severity": "high",
+      "title": "Mint policy remains open",
+      "evidence": "scriptType=native, requiredSigners=1; Koios script_info"
+    },
+    {
+      "id": "liquidity",
+      "severity": "medium",
+      "title": "Minswap liquidity is below 10,000 ADA",
+      "evidence": "totalTvlAda=1766.66; Minswap pools/metrics"
+    }
+  ],
+  "verdict": "HIGH",
+  "sources": [
+    {
+      "call": "asset_info_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
+      "at": "2026-10-06T06:41:15.092Z"
+    },
+    {
+      "call": "registry_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
+      "at": "2026-10-06T06:41:15.096Z"
+    },
+    {
+      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e74_0",
+      "at": "2026-10-06T06:41:15.097Z"
+    },
+    {
+      "call": "script_info_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6",
+      "at": "2026-10-06T06:41:15.097Z"
+    },
+    {
+      "call": "minswap_pools_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
+      "at": "2026-10-06T06:41:15.097Z"
+    },
+    {
+      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e74_1",
+      "at": "2026-10-06T06:41:15.099Z"
+    },
+    {
+      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e74_2",
+      "at": "2026-10-06T06:41:15.100Z"
+    },
+    {
+      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e74_3",
+      "at": "2026-10-06T06:41:15.102Z"
+    },
+    {
+      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e74_4",
+      "at": "2026-10-06T06:41:15.102Z"
+    }
+  ]
+}

@@ -1,0 +1,569 @@
+{
+  "input": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
+  "unit": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
+  "policyId": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6",
+  "assetNameAscii": "MIN",
+  "fingerprint": "asset1d9v7aptfvpx7we2la8f25kwprkj2ma5rp6uwzv",
+  "identity": {
+    "registryName": "Minswap",
+    "ticker": "MIN",
+    "decimals": 6,
+    "url": "https://minswap.org/",
+    "inRegistry": true
+  },
+  "policy": {
+    "scriptType": "native",
+    "requiredSigners": 1,
+    "mintOpen": true
+  },
+  "supply": {
+    "total": "3000000000000000",
+    "mintTxCount": 3,
+    "burnTxCount": 1
+  },
+  "holders": {
+    "count": 0,
+    "top1Pct": 0,
+    "top10Pct": 0,
+    "scriptHeldPct": 0
+  },
+  "liquidity": {
+    "pools": [
+      {
+        "dex": "Minswap",
+        "tvlAda": 6132060.720712,
+        "pair": "ADA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 981339.34891,
+        "pair": "ADA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 799492.9310969177,
+        "pair": "USDM/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 363303.1087031541,
+        "pair": "NIGHT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 7143.225116797411,
+        "pair": "SNEK/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 5445.114581667292,
+        "pair": "iUSD/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 3323.145423577145,
+        "pair": "MNT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 2584.520765531273,
+        "pair": "BWARE/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 1172.569953518292,
+        "pair": "WMT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 566.5976212994859,
+        "pair": "BUBBLE/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 541.8058391404485,
+        "pair": "SUNDAE/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 459.20694653927154,
+        "pair": "BFD/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 397.45044813297704,
+        "pair": "INDY/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 232.1532971172951,
+        "pair": "BLUEY/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 217.2539950966732,
+        "pair": "SASSY/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 131.84658073165232,
+        "pair": "WMT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 118.8376340561765,
+        "pair": "SASSY/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 108.9888884483369,
+        "pair": "LQ/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 102.4679813144189,
+        "pair": "MELD/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 88.4797404899905,
+        "pair": "MINt/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 64.90358091874764,
+        "pair": "HOSKY/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 43.18361888086224,
+        "pair": "Minswap Intern/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 39.10619940903406,
+        "pair": "SNEK/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 38.80200875536235,
+        "pair": "CAT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 36.71015100288344,
+        "pair": "PAVIA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 32.20182303498743,
+        "pair": "iJPY/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 26.092827685741373,
+        "pair": "DJED/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 14.811669407290546,
+        "pair": "AGIX/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 13.182211744400085,
+        "pair": "SUNDAE/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 12.584210758192157,
+        "pair": "MILK/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 11.609474763768532,
+        "pair": "PUSHEE/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 10.138499347354266,
+        "pair": "PJN/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 9.15908968736562,
+        "pair": "1337/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 8.550205172388226,
+        "pair": "QUANG/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 7.562161372681462,
+        "pair": "ADA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 6.568592434852744,
+        "pair": "YUMMI/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 4.514651656406981,
+        "pair": "MINv1LP/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 4.228976704009807,
+        "pair": "GALAXY/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 3.386875561422821,
+        "pair": "MONET/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 3.0045441017723085,
+        "pair": "cTOSI/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 2.916037902917819,
+        "pair": "ELADR/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 2.5427741442735083,
+        "pair": "NMKR/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 2.402906950785589,
+        "pair": "DANZO/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 1.8399663681192666,
+        "pair": "COPI/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 1.5883203939300699,
+        "pair": "DRIP/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 1.5105560380331466,
+        "pair": "SHEN/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 1.3688356856151618,
+        "pair": "GCO/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 1.1269153068634632,
+        "pair": "iUSD/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 1.0097103453096508,
+        "pair": "MELD/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.7561621504397554,
+        "pair": "cNETA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.7044489161754482,
+        "pair": "CMT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.5969626079683085,
+        "pair": "BUBBLE/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.4593003877231803,
+        "pair": "ADAX/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.3831073530173925,
+        "pair": "DANA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.24302945227968692,
+        "pair": "CLAP/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.21822038321571285,
+        "pair": "WDOD /MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.10829538055599053,
+        "pair": "ADA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.09481509451638152,
+        "pair": "NTX/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.07928721623944762,
+        "pair": "MCOS/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.04967141272703623,
+        "pair": "LENFI/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.046444627562933036,
+        "pair": "BARRON/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.041228037400748464,
+        "pair": "DIS/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.03695111413542058,
+        "pair": "INDY/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.03156124256539623,
+        "pair": "FIRE/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.025573964729102706,
+        "pair": "iBTC/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.023122905614172035,
+        "pair": "CTV/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.017120948998872582,
+        "pair": "$PURR/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.01043136432676233,
+        "pair": "CHRLZ/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.005540593653352146,
+        "pair": "GOKEYv1/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.005463990566044829,
+        "pair": "QAI/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.004474217741712516,
+        "pair": "HOSKY/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.004356912916207233,
+        "pair": "MemeBTC/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0032678530146123233,
+        "pair": "ADA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.003227942377926796,
+        "pair": "CBLP/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00219351337454621,
+        "pair": "STRIKE/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0013215954909871785,
+        "pair": "ADA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0009483401033260585,
+        "pair": "FLAC/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0004702686609572563,
+        "pair": "FET/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00045347004877755007,
+        "pair": "USDT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00039426599844061397,
+        "pair": "FLDT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0003430847089466422,
+        "pair": "iETH/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0003247541234398321,
+        "pair": "NVL/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0003028811891442724,
+        "pair": "NINJAZ/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00023795942012502615,
+        "pair": "BISON/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00023517931265880552,
+        "pair": "ADA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00022009715991677247,
+        "pair": "FACT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00013738403691460047,
+        "pair": "MEMEBTC/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00010087465149958267,
+        "pair": "SPXT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00007631574634319232,
+        "pair": "MIRA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00003355769514580354,
+        "pair": "rsCOMET/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00002095451129944482,
+        "pair": "MNT/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0000092160615128368,
+        "pair": "USDCx/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00000855884712055393,
+        "pair": "ADA/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00000640157780363992,
+        "pair": "NVL/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00000553015679816482,
+        "pair": "GENS/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.0000047736563642392,
+        "pair": "COB/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00000422712503791084,
+        "pair": "Minswap Intern/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00000298282231584721,
+        "pair": "MILK/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00000290920948420658,
+        "pair": "Trust/MIN"
+      },
+      {
+        "dex": "Minswap",
+        "tvlAda": 0.00000289973118212288,
+        "pair": "WRT/MIN"
+      }
+    ],
+    "totalTvlAda": 8299240.341559133
+  },
+  "activity": {
+    "firstSeen": "2021-10-10T10:17:49.000Z"
+  },
+  "findings": [
+    {
+      "id": "mint-open",
+      "severity": "high",
+      "title": "Mint policy remains open",
+      "evidence": "scriptType=native, requiredSigners=1; Koios script_info"
+    }
+  ],
+  "verdict": "HIGH",
+  "sources": [
+    {
+      "call": "asset_info_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
+      "at": "2026-10-06T06:41:15.046Z"
+    },
+    {
+      "call": "registry_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
+      "at": "2026-10-06T06:41:15.048Z"
+    },
+    {
+      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e_0",
+      "at": "2026-10-06T06:41:15.049Z"
+    },
+    {
+      "call": "script_info_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6",
+      "at": "2026-10-06T06:41:15.049Z"
+    },
+    {
+      "call": "minswap_pools_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
+      "at": "2026-10-06T06:41:15.049Z"
+    }
+  ]
+}
