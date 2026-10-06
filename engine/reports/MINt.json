@@ -1,12 +1,12 @@
 {
-  "input": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
+  "input": "MINt",
   "unit": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
   "policyId": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6",
   "assetNameAscii": "MINt",
   "fingerprint": "asset12h0hazu0j4dvvk46rhycfg7zl9t900nl3c5rvu",
   "identity": {
-    "registryName": "Minswap",
-    "ticker": "MIN",
+    "registryName": "Minswap MINt",
+    "ticker": "MINt",
     "decimals": 6,
     "url": "https://minswap.org/",
     "inRegistry": true
@@ -22,10 +22,11 @@
     "burnTxCount": 1
   },
   "holders": {
-    "count": 1000,
-    "top1Pct": 0.20996141724203077,
-    "top10Pct": 2.0631770840064108,
-    "scriptHeldPct": 0
+    "count": 99,
+    "top1Pct": 0.5610756105837336,
+    "top10Pct": 0.99090787985694,
+    "scriptHeldPct": 2.414971805705894,
+    "sampled": true
   },
   "liquidity": {
     "pools": [
@@ -87,40 +88,28 @@
   "verdict": "HIGH",
   "sources": [
     {
+      "call": "minswap_search_MINT",
+      "at": "2026-10-06T09:21:28.563Z"
+    },
+    {
       "call": "asset_info_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
-      "at": "2026-10-06T06:41:15.092Z"
+      "at": "2026-10-06T09:21:28.564Z"
     },
     {
       "call": "registry_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
-      "at": "2026-10-06T06:41:15.096Z"
+      "at": "2026-10-06T09:21:28.564Z"
     },
     {
-      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e74_0",
-      "at": "2026-10-06T06:41:15.097Z"
+      "call": "blockfrost_asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
+      "at": "2026-10-06T09:21:28.565Z"
     },
     {
       "call": "script_info_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6",
-      "at": "2026-10-06T06:41:15.097Z"
+      "at": "2026-10-06T09:21:28.565Z"
     },
     {
       "call": "minswap_pools_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e74",
-      "at": "2026-10-06T06:41:15.097Z"
-    },
-    {
-      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e74_1",
-      "at": "2026-10-06T06:41:15.099Z"
-    },
-    {
-      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e74_2",
-      "at": "2026-10-06T06:41:15.100Z"
-    },
-    {
-      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e74_3",
-      "at": "2026-10-06T06:41:15.102Z"
-    },
-    {
-      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e74_4",
-      "at": "2026-10-06T06:41:15.102Z"
+      "at": "2026-10-06T09:21:28.566Z"
     }
   ]
 }

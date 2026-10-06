@@ -1,5 +1,5 @@
 {
-  "input": "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
+  "input": "SNEK",
   "unit": "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
   "policyId": "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f",
   "assetNameAscii": "SNEK",
@@ -23,16 +23,17 @@
     "burnTxCount": 0
   },
   "holders": {
-    "count": 999,
-    "top1Pct": 4.082110213687179,
-    "top10Pct": 20.80289327972253,
-    "scriptHeldPct": 0.00007893411377149034
+    "count": 88,
+    "top1Pct": 2.387591455641257,
+    "top10Pct": 6.565624419611689,
+    "scriptHeldPct": 1.7163712636810005,
+    "sampled": true
   },
   "liquidity": {
     "pools": [
       {
         "dex": "Minswap",
-        "tvlAda": 4250790.305996,
+        "tvlAda": 4241102.557624,
         "pair": "ADA/SNEK"
       },
       {
@@ -42,12 +43,12 @@
       },
       {
         "dex": "Minswap",
-        "tvlAda": 381372.47253237135,
+        "tvlAda": 382648.3338510937,
         "pair": "USDCx/SNEK"
       },
       {
         "dex": "Minswap",
-        "tvlAda": 268287.1462,
+        "tvlAda": 266810.418292,
         "pair": "ADA/SNEK"
       },
       {
@@ -321,7 +322,7 @@
         "pair": "FLEsH/SNEK"
       }
     ],
-    "totalTvlAda": 6953428.838039255
+    "totalTvlAda": 6943540.223077977
   },
   "activity": {
     "firstSeen": "2023-04-26T03:40:13.000Z"
@@ -330,40 +331,28 @@
   "verdict": "LOW",
   "sources": [
     {
+      "call": "minswap_search_SNEK",
+      "at": "2026-10-06T09:21:28.283Z"
+    },
+    {
       "call": "asset_info_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
-      "at": "2026-10-06T06:41:15.052Z"
+      "at": "2026-10-06T09:21:28.284Z"
     },
     {
       "call": "registry_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
-      "at": "2026-10-06T06:41:15.053Z"
+      "at": "2026-10-06T09:21:28.284Z"
     },
     {
-      "call": "asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f_534e454b_0",
-      "at": "2026-10-06T06:41:15.053Z"
+      "call": "blockfrost_asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
+      "at": "2026-10-06T09:21:28.285Z"
     },
     {
       "call": "script_info_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f",
-      "at": "2026-10-06T06:41:15.053Z"
+      "at": "2026-10-06T09:21:28.285Z"
     },
     {
       "call": "minswap_pools_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b",
-      "at": "2026-10-06T06:41:15.053Z"
-    },
-    {
-      "call": "asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f_534e454b_1",
-      "at": "2026-10-06T06:41:15.058Z"
-    },
-    {
-      "call": "asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f_534e454b_2",
-      "at": "2026-10-06T06:41:15.059Z"
-    },
-    {
-      "call": "asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f_534e454b_3",
-      "at": "2026-10-06T06:41:15.059Z"
-    },
-    {
-      "call": "asset_addresses_279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f_534e454b_4",
-      "at": "2026-10-06T06:41:15.060Z"
+      "at": "2026-10-06T09:21:28.286Z"
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "input": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
+  "input": "MIN",
   "unit": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
   "policyId": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6",
   "assetNameAscii": "MIN",
@@ -22,16 +22,17 @@
     "burnTxCount": 1
   },
   "holders": {
-    "count": 0,
-    "top1Pct": 0,
-    "top10Pct": 0,
-    "scriptHeldPct": 0
+    "count": 94,
+    "top1Pct": 0.7249565135264667,
+    "top10Pct": 1.1109301497612334,
+    "scriptHeldPct": 29.745232696438634,
+    "sampled": true
   },
   "liquidity": {
     "pools": [
       {
         "dex": "Minswap",
-        "tvlAda": 6132060.720712,
+        "tvlAda": 6132261.650774,
         "pair": "ADA/MIN"
       },
       {
@@ -46,7 +47,7 @@
       },
       {
         "dex": "Minswap",
-        "tvlAda": 363303.1087031541,
+        "tvlAda": 364514.1341933366,
         "pair": "NIGHT/MIN"
       },
       {
@@ -530,7 +531,7 @@
         "pair": "WRT/MIN"
       }
     ],
-    "totalTvlAda": 8299240.341559133
+    "totalTvlAda": 8300652.297111316
   },
   "activity": {
     "firstSeen": "2021-10-10T10:17:49.000Z"
@@ -546,24 +547,28 @@
   "verdict": "HIGH",
   "sources": [
     {
+      "call": "minswap_search_MIN",
+      "at": "2026-10-06T09:21:28.285Z"
+    },
+    {
       "call": "asset_info_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
-      "at": "2026-10-06T06:41:15.046Z"
+      "at": "2026-10-06T09:21:28.287Z"
     },
     {
       "call": "registry_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
-      "at": "2026-10-06T06:41:15.048Z"
+      "at": "2026-10-06T09:21:28.287Z"
     },
     {
-      "call": "asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6_4d494e_0",
-      "at": "2026-10-06T06:41:15.049Z"
+      "call": "blockfrost_asset_addresses_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
+      "at": "2026-10-06T09:21:28.288Z"
     },
     {
       "call": "script_info_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6",
-      "at": "2026-10-06T06:41:15.049Z"
+      "at": "2026-10-06T09:21:28.288Z"
     },
     {
       "call": "minswap_pools_29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c64d494e",
-      "at": "2026-10-06T06:41:15.049Z"
+      "at": "2026-10-06T09:21:28.289Z"
     }
   ]
 }
