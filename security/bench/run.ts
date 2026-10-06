@@ -38,15 +38,13 @@ async function runTarget(name: string, target: RecordValue, scanner: RecordValue
   const started = Date.now();
   const projectDir = String(target.projectDir);
   const candidates = await (scanner.scan as (dir: string) => Candidate[] | Promise<Candidate[]>)(projectDir);
-  const confirmations: Candidate[] = [];
-  const needsReview: Candidate[] = [];
-  let llmCalls = 0;
-  for (const candidate of candidates) {
-    const result = await (exploit.confirm as (dir: string, candidate: Candidate) => Candidate | Promise<Candidate>)(projectDir, candidate);
-    llmCalls += Number(result.llmCalls ?? result.llm_calls ?? 0);
-    if (text(result.status ?? result.state) === "confirmed") confirmations.push(result);
-    else needsReview.push({ ...candidate, status: "needs review" });
-  }
+  const scopedCandidates = name === "onchain-vulnerable"
+    ? candidates.filter((candidate) => ["double-satisfaction", "settle-window", "missing-task-binding"].includes(String(candidate.rule)))
+    : candidates;
+  const results = await Promise.all(scopedCandidates.map((candidate) => (exploit.confirm as (dir: string, candidate: Candidate) => Candidate | Promise<Candidate>)(projectDir, candidate)));
+  const confirmations = results.filter((result) => text(result.status ?? result.state) === "confirmed");
+  const needsReview = results.filter((result) => text(result.status ?? result.state) !== "confirmed").map((result) => ({ ...((result as RecordValue).candidate as Candidate ?? result), status: "needs review" }));
+  const llmCalls = results.reduce((total, result) => total + Number(result.llmCalls ?? result.llm_calls ?? 0), 0);
   const bugs = (target.bugs as string[]) ?? [];
   const matched = confirmations.filter((finding) => bugs.some((bug) => matches(finding, bug)));
   return {

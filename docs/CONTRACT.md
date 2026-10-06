@@ -1,7 +1,3 @@
-# Cardano Risk Analyst: lane contract
-
-A Sokosumi AI Coworker that does one job: given a Cardano token (policy id, policy.assetName unit, ticker or fingerprint), return a risk memo answering "should I interact with this token?". Data is gathered deterministically from Cardano mainnet; the verdict comes from fixed rules; the LLM only writes the prose and must cite the facts. It gets paid per Task on Sokosumi through Masumi escrow (Preprod).
-
 ## engine/ (lane ENGINE): `analyze(input: string): Promise<RiskReport>`
 Sources: Koios mainnet `https://api.koios.rest/api/v1` (bearer KAIOS_KEY), Minswap public API, Cardano token registry `https://tokens.cardano.org/metadata/<unit>`.
 ```ts

