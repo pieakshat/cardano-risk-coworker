@@ -13,4 +13,8 @@ Required server-side settings are `SOKOSUMI_COWORKER_ID`, `SOKOSUMI_COWORKER_API
 
 Account-2 registration is gated by `/tmp/briefs/account2.ready` and refuses the submission-1 identity. After the second account is signed in, run `./register.sh`; it is safe to rerun and records returned IDs in the private setup record.
 
+## Account-2 evidence
+
+The API-key identity was verified as `01a10fa0-f6b4-750d-a8d5-17aea30f98d8`. `vendors me` returned no Vendor, and Preprod Vendor creation returned `403` because an organization Workspace is required. The exact human action is recorded in `/tmp/briefs/risk.human`; no account-1 identity or OAuth state was used.
+
 The worker polls Personal Workspace Tasks assigned to the Coworker. The Task input is a token string. The completed result contains the memo markdown followed by the full `risk-report.json` object. The local worker command is `bun src/worker.ts` because the sibling engine uses Bun fixture and runtime APIs.

@@ -1,71 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-root=$(cd "$(dirname "$0")/../.." && pwd)
-lane="$root/security/worker"
-record="$lane/SETUP-RECORD.md"
-worker_record="$root/worker/SETUP-RECORD.md"
-account1="01a10fa2-aaf1-71da-97b6-13a0081efeb8"
-event_workspace="01a109d1-32a9-71a3-a0e3-658b2a7987cd"
-
-test -e /tmp/briefs/account2.ready || { echo "waiting for /tmp/briefs/account2.ready" >&2; exit 2; }
-whoami=$(sokosumi --preprod auth whoami --json)
-user_id=$(printf '%s' "$whoami" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).user.id))')
-test "$user_id" != "$account1" || { echo "submission-1 account is active" >&2; exit 3; }
-
-json_id() { node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s); console.log(x.id ?? x.data?.id ?? x.vendor?.id ?? x.coworker?.id ?? "")})'; }
-record_id() { rg -o "$1[^0-9a-f]*[0-9a-f]{8}-[0-9a-f-]{27,}" "$2" 2>/dev/null | head -1 | rg -o '[0-9a-f]{8}-[0-9a-f-]{27,}' || true; }
-save() { printf "\n- %s: \`%s\`\n" "$1" "$2" >> "$record"; }
-
-vendor_id=$(record_id 'Vendor' "$worker_record")
-if [ -z "$vendor_id" ]; then
-  vendor_id=$(sokosumi --preprod vendors me --json | json_id)
+root=$(cd "$(dirname "$0")/../.." && pwd); lane="$root/security/worker"; cd "$lane"
+set -a; source "$root/.env"; set +a
+: "${SOKO_API_KEY:?SOKO_API_KEY is required in .env}"
+forbidden_user="01a10fa2-aaf1-71da-97b6-13a0081efeb8"; record="$lane/SETUP-RECORD.md"; json=$(mktemp)
+trap 'rm -f "$json"' EXIT
+ss() { SOKOSUMI_API_KEY="$SOKO_API_KEY" sokosumi --preprod "$@"; }
+identity=$(ss auth whoami --json); user_id=$(jq -r '.user.id' <<<"$identity")
+test "$user_id" != "$forbidden_user" || { echo "refusing submission-1 account" >&2; exit 3; }
+vendor_id=$(rg -o 'Vendor: `[^`]+`' "$root/worker/SETUP-RECORD.md" | head -n1 | sed 's/.*`//;s/`.*//' || true)
+if ! [[ "$vendor_id" =~ ^[0-9a-f-]{36}$ ]]; then
+  mkdir -p /tmp/briefs
+  printf '%s\n' 'Human step required: open Sokosumi Preprod Web, create or join an organization Workspace for account 01a10fa0-f6b4-750d-a8d5-17aea30f98d8, then rerun worker/register.sh and security/worker/register.sh. Vendor creation is rejected by the API until that organization Workspace exists. The Personal Workspace already exists and will be used for Coworker access and Tasks after the Vendor is created.' > /tmp/briefs/risk.human
+  echo "worker Vendor is unavailable; see /tmp/briefs/risk.human" >&2
+  exit 4
 fi
-if [ -z "$vendor_id" ]; then
-  vendor_id=$(sokosumi --preprod vendors create --name "Cardano Risk Review" --slug cardano-risk-review --json | json_id)
-fi
-test -n "$vendor_id" || { echo "no current-account Vendor available" >&2; exit 4; }
-save "Account-2 user" "$user_id"
-save "Vendor" "$vendor_id"
-
-coworker_id=$(record_id 'Coworker' "$record")
+coworkers=$(ss coworkers list --scope owned --json); coworker_id=$(jq -r '.coworkers[] | select(.name == "Aiken Security Reviewer") | .id' <<<"$coworkers" | head -n1)
 if [ -z "$coworker_id" ]; then
-  coworker_id=$(sokosumi --preprod coworkers list --scope owned --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s);const xs=Array.isArray(x)?x:(x.data??x.coworkers??[]);console.log(xs.find(v=>v.name==="Aiken Security Reviewer")?.id??"")})')
+  coworker_id=$(ss coworkers provision --vendor-id "$vendor_id" --name "Aiken Security Reviewer" --caption "Exploit-confirmed Aiken security review" --description "Reviews public Aiken repositories, confirms candidates with compiling attack tests, and returns evidence artifacts." --capability tasks --json | tee "$json" | jq -r '.coworker.id // .id')
 fi
-if [ -z "$coworker_id" ]; then
-  coworker_id=$(sokosumi --preprod coworkers provision --vendor-id "$vendor_id" --name "Aiken Security Reviewer" --capability tasks --json | json_id)
+test -n "$coworker_id"; ss coworkers connect "$coworker_id" --personal --vendor-id "$vendor_id" --json >"$json"
+if ! grep -q '^SOKOSUMI_COWORKER_API_KEY=' .env.local 2>/dev/null; then
+  ss coworkers api-key "$coworker_id" --json >"$json"; key=$(jq -r '.apiKey.token // .token' "$json"); test -n "$key" && test "$key" != null
+  umask 077; printf 'SOKOSUMI_COWORKER_ID=%s\nSOKOSUMI_COWORKER_API_KEY=%s\n' "$coworker_id" "$key" > .env.local
+  printf '%s' "$key" | ss runtime key-import --coworker-id "$coworker_id" --api-key-stdin >/dev/null
 fi
-test -n "$coworker_id" || { echo "Coworker provisioning returned no ID" >&2; exit 5; }
-save "Coworker" "$coworker_id"
-
-if ! rg -q 'Runtime key: `present`' "$record" 2>/dev/null; then
-  key_json=$(sokosumi --preprod coworkers api-key "$coworker_id" --json)
-  key=$(printf '%s' "$key_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s);console.log(x.apiKey?.token??x.token??"")})')
-  test -n "$key" || { echo "runtime key was not returned" >&2; exit 6; }
-  umask 077
-  printf 'SOKOSUMI_COWORKER_ID=%s\nSOKOSUMI_COWORKER_API_KEY=%s\n' "$coworker_id" "$key" > "$lane/.env.local"
-  printf '%s\n' "$key" | sokosumi --preprod runtime key-import --coworker-id "$coworker_id" --api-key-stdin >/dev/null
-  save "Runtime key" "present"
-fi
-
-if ! rg -q 'Rehearsal Task:' "$record" 2>/dev/null; then
-  rehearsal=$(sokosumi --preprod tasks create --personal --coworker-id "$coworker_id" --name "Aiken reviewer rehearsal" --description '{"repoUrl":"https://github.com/Invariant-0/cardano-ctf","path":"bank_01_deposit_vulnerability"}' --status READY --json)
-  rehearsal_id=$(printf '%s' "$rehearsal" | json_id)
-  save "Rehearsal Task" "$rehearsal_id"
-fi
-
-if [ "${RUN_PAID_TASK:-false}" = true ] && ! rg -q 'Paid Task:' "$record" 2>/dev/null; then
-  paid=$(sokosumi --preprod tasks create --personal --coworker-id "$coworker_id" --name "Paid Aiken security review" --description '{"repoUrl":"https://github.com/Invariant-0/cardano-ctf","path":"bank_01_deposit_vulnerability"}' --status READY --json)
-  paid_id=$(printf '%s' "$paid" | json_id)
-  save "Paid Task" "$paid_id"
-elif [ "${RUN_PAID_TASK:-false}" != true ]; then
-  printf '%s\n' 'Credits not confirmed. Set RUN_PAID_TASK=true after funding the Personal Workspace, then rerun register.sh.' > /tmp/briefs/risk.human
-fi
-
-if ! rg -q 'TOKEN2049 access:' "$record" 2>/dev/null; then
-  access=$(sokosumi --preprod coworkers connect "$coworker_id" --vendor-id "$vendor_id" --workspace-id "$event_workspace" --json)
-  access_id=$(printf '%s' "$access" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s);console.log(x.id??x.accessId??x.data?.id??"unknown")})')
-  save "TOKEN2049 access" "$access_id"
-fi
-
-printf '%s\n' "registered current account $user_id with Coworker $coworker_id"
+printf '# Account-2 setup\n\n- Account: `%s`\n- Vendor: `%s`\n- Coworker: `%s`\n- Personal access: `requested`\n- Profile: `description, caption, tasks`\n' "$user_id" "$vendor_id" "$coworker_id" >"$record"
+echo "registered account=$user_id vendor=$vendor_id coworker=$coworker_id"
