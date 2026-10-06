@@ -49,13 +49,13 @@ if ! rg -q 'Runtime key: `present`' "$record" 2>/dev/null; then
 fi
 
 if ! rg -q 'Rehearsal Task:' "$record" 2>/dev/null; then
-  rehearsal=$(sokosumi --preprod tasks create --personal --coworker-id "$coworker_id" --name "Aiken reviewer rehearsal" --description '{"repoUrl":"https://github.com/Invariant-0/cardano-ctf","path":"level-1"}' --status READY --json)
+  rehearsal=$(sokosumi --preprod tasks create --personal --coworker-id "$coworker_id" --name "Aiken reviewer rehearsal" --description '{"repoUrl":"https://github.com/Invariant-0/cardano-ctf","path":"bank_01_deposit_vulnerability"}' --status READY --json)
   rehearsal_id=$(printf '%s' "$rehearsal" | json_id)
   save "Rehearsal Task" "$rehearsal_id"
 fi
 
 if [ "${RUN_PAID_TASK:-false}" = true ] && ! rg -q 'Paid Task:' "$record" 2>/dev/null; then
-  paid=$(sokosumi --preprod tasks create --personal --coworker-id "$coworker_id" --name "Paid Aiken security review" --description '{"repoUrl":"https://github.com/Invariant-0/cardano-ctf","path":"level-1"}' --status READY --json)
+  paid=$(sokosumi --preprod tasks create --personal --coworker-id "$coworker_id" --name "Paid Aiken security review" --description '{"repoUrl":"https://github.com/Invariant-0/cardano-ctf","path":"bank_01_deposit_vulnerability"}' --status READY --json)
   paid_id=$(printf '%s' "$paid" | json_id)
   save "Paid Task" "$paid_id"
 elif [ "${RUN_PAID_TASK:-false}" != true ]; then
