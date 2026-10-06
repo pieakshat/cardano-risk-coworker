@@ -1,0 +1,21 @@
+{
+  "input": "MIN",
+  "unit": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6.4d494e",
+  "policyId": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6",
+  "assetNameAscii": "MIN",
+  "fingerprint": "asset1d9v7aptfvpx7we2la8f25kwprkj2ma5rp6uwzv",
+  "identity": { "registryName": "Minswap", "ticker": "MIN", "decimals": 6, "url": "https://minswap.org/", "inRegistry": true },
+  "policy": { "scriptType": "native", "requiredSigners": 0, "mintOpen": true },
+  "supply": { "total": "3000000000000000", "mintTxCount": 3, "burnTxCount": 1, "lastMintAt": "2024-01-15T10:24:32.000Z" },
+  "holders": { "count": 0, "top1Pct": 0, "top10Pct": 0, "scriptHeldPct": 0 },
+  "liquidity": { "pools": [], "totalTvlAda": 0 },
+  "activity": { "firstSeen": "2021-10-10T10:17:49.000Z" },
+  "findings": [
+    { "id": "mint-open", "severity": "high", "title": "Minting policy is open", "evidence": "Koios asset_info reports mint_cnt 3 and no timelock data in the recorded response." }
+  ],
+  "verdict": "HIGH",
+  "sources": [
+    { "call": "POST https://api.koios.rest/api/v1/asset_list with _asset_name=4d494e", "at": "2026-10-06" },
+    { "call": "POST https://api.koios.rest/api/v1/asset_info with _asset_policy=29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6 and _asset_name=4d494e", "at": "2026-10-06" }
+  ]
+}

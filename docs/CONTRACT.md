@@ -32,3 +32,21 @@ Mirror `/Users/user/Desktop/canton/cost-of-trust/coworker` (working, registered,
 One input box (token) -> live report rendered from engine + memo; "Hire on Sokosumi" link to the Coworker; examples. Hallmark theme, not Grid.
 
 Credentials (never print): KAIOS_KEY via `set -a; source /Users/user/Desktop/canton/recourse/.env.live`; OPENROUTER_API_KEY via `/Users/user/Desktop/canton/cost-of-trust/coworker/.env.local`.
+
+# Part 2: Aiken Security Reviewer (same submission, second Coworker under the same Vendor)
+
+One submission, two Coworkers that hire each other: the Risk Analyst checks a token from chain data; when the token's minting policy or the protocol it touches is a Plutus script with public Aiken source, it hires the Security Reviewer through Masumi escrow (agent-to-agent, the workshop's "Agent-to-agent network" slide).
+
+The Security Reviewer's rule: no finding is reported unless an exploit test proves it. Input: a public GitHub repo URL (+ optional path) of an Aiken project. Output: a report where each finding carries severity, file:line, the attack transaction shape, and an Aiken test that PASSES against the submitted code (the attack is accepted), plus the suggested fix and a test that fails after the fix where possible. Unconfirmed candidates are listed separately as "needs review", never as findings.
+
+## security/scanner/ (lane SEC-SCANNER): `scan(projectDir): Candidate[]`
+Static rules over Aiken source and plutus.json: double satisfaction (outputs checked by address/value without binding to the own input out-ref or a single-script-input rule), missing or one-sided validity-range checks on time-dependent redeemers, missing signer checks, unbounded datum fields an attacker controls at lock time, minting policies without one-shot uniqueness, staking-credential substitution on payouts, `else` handlers that succeed, value checks with >= that allow token dust, redeemers with no state-transition check. Each candidate: { rule, file, line, why, attackSketch }.
+
+## security/exploit/ (lane SEC-EXPLOIT): `confirm(projectDir, candidate): Confirmed | Unconfirmed`
+Copies the project to work/<id>/ (gitignored), asks an LLM (OpenRouter, OPENROUTER_API_KEY; pick the best free coder model from https://openrouter.ai/api/v1/models, fallback nvidia/nemotron-3-ultra-550b-a55b:free, max_tokens >= 1500) to write an Aiken attack test for the candidate using the project's own types, runs `~/.aiken/bin/aiken check`, and marks CONFIRMED only if the attack test passes; a control test (honest tx) must also pass. Up to 3 repair attempts feeding back compiler errors. Records the test source.
+
+## security/bench/ (lane SEC-BENCH): ground-truth benchmark
+Corpus with known answers: (1) /Users/user/Desktop/canton/cost-of-trust/onchain at commit ce28fef (known: Critical double satisfaction across vault and coverage outputs; High INCONCLUSIVE/early settle with no time window; High report not bound to task) versus commit 6a45d0a (fixed: those must NOT be confirmed); ground truth in /Users/user/Desktop/canton/cost-of-trust/onchain/SECURITY-codex.md, SECURITY-opus.md, SECURITY-FIXED.md. (2) https://github.com/Invariant-0/cardano-ctf vulnerable levels with their documented intended bugs. Runs scan+confirm on each, outputs bench/results.json and bench/RESULTS.md with recall and false-positive counts per target. This is the answer to "how do you know".
+
+## security/worker/ (lane SEC-WORKER): Sokosumi Coworker "Aiken Security Reviewer"
+Same Vendor 01a10fcf-be3e-766d-b32c-300330ed9187, same MPS on 3012, guide research/masumi/agent-guide.md. Task input: repo URL. Result: report markdown + exploit tests as a file. Plus the agent-to-agent hook: an HTTP endpoint the Risk Analyst worker calls to hire it (Masumi purchase via MPS), documented for worker/.
