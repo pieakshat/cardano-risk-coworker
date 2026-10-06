@@ -26,7 +26,7 @@ const summaryReport = (summary: (typeof top20)[number]): RiskReport => ({
   holders: { count: 0, top1Pct: summary.top1Pct, top10Pct: 0, scriptHeldPct: 0, sampled: false },
   liquidity: { pools: [], totalTvlAda: summary.totalTvlAda },
   activity: { firstSeen: "" },
-  findings: summary.findings.map((finding, index) => ({
+  findings: summary.findings.map((finding) => ({
     id: finding.id,
     severity: finding.severity as RiskReport["findings"][number]["severity"],
     title: finding.id.replaceAll("-", " "),
