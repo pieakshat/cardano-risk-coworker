@@ -1,0 +1,27 @@
+.run { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--color-ink); }
+.kicker { margin: 0; font: 500 11px/1.4 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted); }
+.title { margin: 10px 0 0; max-width: 20ch; font: 600 clamp(28px, 4.4vw, 44px)/1.04 var(--font-display); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.lede { margin: 14px 0 0; max-width: 620px; font: 400 16px/1.6 var(--font-body); color: var(--color-ink-2); }
+.pair { margin-top: 28px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: 4px solid var(--color-ink); }
+.seller { min-width: 0; padding: 20px 24px 24px 0; }
+.seller + .seller { padding-left: 24px; border-left: 1px solid var(--color-rule); }
+.seller h3 { margin: 0; font: 600 22px/1.2 var(--font-display); }
+.asks { margin: 8px 0 0; font: 400 15px/1.55 var(--font-body); color: var(--color-ink-2); }
+.seller dl { margin: 18px 0 0; }
+.seller dl div { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--color-rule); }
+.seller dt { font: 500 13px/1.45 var(--font-body); color: var(--color-muted); }
+.seller dd { margin: 0; min-width: 0; font: 400 14px/1.45 var(--font-mono); overflow-wrap: anywhere; }
+.seller dd a { color: var(--color-accent-deep); }
+.decision { font-weight: 700 !important; }
+.seller[data-decision="INTERACT"] .decision { color: var(--color-success); }
+.seller[data-decision="DO_NOT_INTERACT"] .decision { color: var(--color-danger); }
+.wire { margin-top: 36px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 32px; align-items: start; }
+.wire .lede { margin-top: 10px; font-size: 15px; }
+.code { margin: 0; padding: 20px; background: var(--color-graphite); color: var(--color-paper); font: 400 13px/1.6 var(--font-mono); overflow-x: auto; max-width: 100%; }
+
+@media (max-width: 760px) {
+  .pair, .wire { grid-template-columns: minmax(0, 1fr); }
+  .seller, .seller + .seller { padding: 20px 0; border-left: 0; }
+  .seller + .seller { border-top: 1px solid var(--color-ink); }
+  .seller dl div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}

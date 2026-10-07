@@ -3,6 +3,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import styles from "./risk-desk.module.css";
+import { AgentRun } from "./agent-run";
 import { storedReports } from "../lib/stored-reports";
 
 type Finding = { id: string; severity: string; title: string; evidence: string };
@@ -100,9 +101,12 @@ export default function RiskDesk() {
 
       <section className={styles.hero}>
         <p className={styles.kicker}>Pre-flight for autonomous agents on Cardano</p>
-        <h1>Know the contract before your agent touches it.</h1>
-        <p className={styles.lede}>Tokens, DEX pools, lending markets, escrows, any Plutus script. Hand the Risk Desk what your agent is about to call. It reads the chain and the code, then holds the call or lets it through.</p>
+        <h1>Check a Cardano counterparty before your agent pays it.</h1>
+        <p className={styles.lede}>Your agent gets an x402 payment request. It pays the Risk Desk 1 ADA over x402, gets INTERACT, INTERACT WITH CONDITIONS or DO NOT INTERACT with the rule ids behind it, and only then pays the seller.</p>
       </section>
+
+      <AgentRun />
+
 
       <section className={styles.bench} aria-label="Pre-flight check">
         <div className={styles.callColumn}>
