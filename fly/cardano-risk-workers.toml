@@ -6,8 +6,8 @@ primary_region = "sin"
 
 [processes]
   risk = "sh -c 'SOKOSUMI_COWORKER_ID=$RISK_SOKOSUMI_COWORKER_ID SOKOSUMI_COWORKER_API_KEY=$RISK_SOKOSUMI_COWORKER_API_KEY MPS_AGENT_IDENTIFIER=$RISK_MPS_AGENT_IDENTIFIER exec bun src/worker.ts'"
-  security = "sh -c 'SOKOSUMI_COWORKER_ID=$SEC_SOKOSUMI_COWORKER_ID SOKOSUMI_COWORKER_API_KEY=$SEC_SOKOSUMI_COWORKER_API_KEY MPS_AGENT_IDENTIFIER=$SEC_MPS_AGENT_IDENTIFIER exec bun ../security/worker/src/worker.ts'"
-  server = "bun ../security/worker/src/server.ts"
+  security = "sh -c 'cd /app/security/worker && SOKOSUMI_COWORKER_ID=$SEC_SOKOSUMI_COWORKER_ID SOKOSUMI_COWORKER_API_KEY=$SEC_SOKOSUMI_COWORKER_API_KEY MPS_AGENT_IDENTIFIER=$SEC_MPS_AGENT_IDENTIFIER exec bun src/worker.ts'"
+  server = "sh -c 'cd /app/security/worker && exec bun src/server.ts'"
 
 [http_service]
   internal_port = 4412
