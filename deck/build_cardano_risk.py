@@ -12,15 +12,11 @@ MUTED = RGBColor(0x5A, 0x64, 0x72)
 ACCENT = RGBColor(0x46, 0x78, 0xE8)
 RULE = RGBColor(0xC9, 0xD1, 0xDD)
 GRAPHITE = RGBColor(0x22, 0x27, 0x31)
-MONO = "Courier New"
-TITLE = "Space Grotesk"
-BODY = "Arial"
+MONO, TITLE, BODY = "JetBrains Mono", "Space Grotesk", "Inter"
 
 prs = Presentation()
-prs.slide_width = Inches(13.33)
-prs.slide_height = Inches(7.5)
+prs.slide_width, prs.slide_height = Inches(13.33), Inches(7.5)
 blank = prs.slide_layouts[6]
-
 
 def slide():
     s = prs.slides.add_slide(blank)
@@ -28,20 +24,13 @@ def slide():
     s.background.fill.fore_color.rgb = BG
     return s
 
-
 def text(s, x, y, w, h, value, size=20, bold=False, color=INK, align=PP_ALIGN.LEFT, font=BODY):
     box = s.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
     tf = box.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
-    p.text = value
-    p.font.size = Pt(size)
-    p.font.bold = bold
-    p.font.color.rgb = color
-    p.font.name = font
-    p.alignment = align
+    p.text, p.font.size, p.font.bold, p.font.color.rgb, p.font.name, p.alignment = value, Pt(size), bold, color, font, align
     return box
-
 
 def panel(s, x, y, w, h, title, body, accent=False, dark=False):
     shape = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x), Inches(y), Inches(w), Inches(h))
@@ -52,106 +41,83 @@ def panel(s, x, y, w, h, title, body, accent=False, dark=False):
     tf = shape.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
-    p.text = title
-    p.font.size = Pt(17)
-    p.font.bold = True
-    p.font.color.rgb = RGBColor(0xF8, 0xF9, 0xFB) if dark else (ACCENT if accent else INK)
-    p.font.name = TITLE
+    p.text, p.font.size, p.font.bold, p.font.color.rgb, p.font.name = title, Pt(17), True, RGBColor(0xF8, 0xF9, 0xFB) if dark else (ACCENT if accent else INK), TITLE
     p2 = tf.add_paragraph()
-    p2.text = body
-    p2.font.size = Pt(13)
-    p2.font.color.rgb = RGBColor(0xF8, 0xF9, 0xFB) if dark else INK
-    p2.font.name = MONO if dark else BODY
-    return shape
+    p2.text, p2.font.size, p2.font.color.rgb, p2.font.name = body, Pt(13), RGBColor(0xF8, 0xF9, 0xFB) if dark else INK, MONO if dark else BODY
 
-
-def heading(s, title, number):
-    text(s, 0.7, 0.45, 11.7, 0.65, title, 34, True, INK, font=TITLE)
-    bar = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.7), Inches(1.22), Inches(0.9), Inches(0.07))
-    bar.fill.solid()
-    bar.fill.fore_color.rgb = ACCENT
-    bar.line.fill.background()
-    text(s, 11.75, 6.95, 0.85, 0.25, f"{number:02d} / 11", 10, False, MUTED, PP_ALIGN.RIGHT, MONO)
-
+def heading(s, kicker, title, number):
+    text(s, 0.7, 0.4, 11.7, 0.28, kicker, 10, False, MUTED, font=MONO)
+    text(s, 0.7, 0.82, 11.7, 0.72, title, 31, True, INK, font=TITLE)
+    bar = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.7), Inches(1.68), Inches(0.9), Inches(0.07))
+    bar.fill.solid(); bar.fill.fore_color.rgb = ACCENT; bar.line.fill.background()
+    text(s, 11.75, 6.95, 0.85, 0.25, f"{number:02d} / 10", 10, False, MUTED, PP_ALIGN.RIGHT, MONO)
 
 def footer(s):
-    text(s, 0.7, 6.95, 9.5, 0.25, "Cardano Risk Analyst  /  x402  /  Sokosumi  /  Masumi", 10, False, MUTED, font=MONO)
-
+    text(s, 0.7, 6.95, 9.5, 0.25, "Cardano Risk Desk  /  x402  /  Sokosumi  /  Masumi", 10, False, MUTED, font=MONO)
 
 s = slide()
-text(s, 0.8, 1.45, 11.7, 0.9, "An approval step before your agent", 42, True, INK, PP_ALIGN.CENTER, TITLE)
-text(s, 0.8, 2.35, 11.7, 0.9, "pays anyone on Cardano.", 42, True, ACCENT, PP_ALIGN.CENTER, TITLE)
-text(s, 1.65, 3.85, 10.0, 0.6, "Cardano Risk Analyst is the paid preflight check before value moves.", 20, False, INK, PP_ALIGN.CENTER)
-text(s, 3.25, 5.25, 6.8, 0.45, "ARROW KEYS TO READ  /  P TO OPEN THE HUMAN UI", 12, True, MUTED, PP_ALIGN.CENTER, MONO)
-text(s, 0.7, 6.95, 11.9, 0.25, "01 / 11", 10, False, MUTED, PP_ALIGN.RIGHT, MONO)
+text(s, 0.8, 1.25, 11.7, 1.55, "An approval step before your agent pays anyone on Cardano", 40, True, INK, PP_ALIGN.CENTER, TITLE)
+text(s, 1.65, 3.55, 10.0, 0.6, "A paid check between the seller’s request and the wallet signature.", 20, False, INK, PP_ALIGN.CENTER)
+text(s, 3.25, 5.15, 6.8, 0.45, "ARROW KEYS TO READ  /  P TO OPEN THE HUMAN UI", 12, True, MUTED, PP_ALIGN.CENTER, MONO)
+text(s, 11.75, 6.95, 0.85, 0.25, "01 / 10", 10, False, MUTED, PP_ALIGN.RIGHT, MONO)
 
-s = slide(); heading(s, "The decision comes before the transaction", 2)
-text(s, 0.7, 1.65, 11.7, 0.55, "A counterparty is the thing your agent is about to send value into.", 23)
-panel(s, 0.7, 2.55, 3.75, 2.2, "Token", "Mint policy, holders, registry identity, pool exit")
-panel(s, 4.8, 2.55, 3.75, 2.2, "Script", "Protocol identity, TVL, UTxOs, recent transactions")
-panel(s, 8.9, 2.55, 3.75, 2.2, "x402 seller", "PayTo, asset, amount, resource, timeout", True)
-text(s, 0.7, 5.45, 11.7, 0.45, "The output is one action: INTERACT, INTERACT WITH CONDITIONS, or DO NOT INTERACT.", 18, True, INK, PP_ALIGN.CENTER)
+s = slide(); heading(s, "THE FEAR", "Your agent holds the wallet. The seller controls the story.", 2)
+text(s, 0.7, 1.95, 11.7, 0.55, "A payment request can name a real address, a real asset, and a real price while nobody has checked what sits behind them.", 19)
+panel(s, 0.7, 3.0, 3.75, 2.2, "The agent sees", "A 402 response with an amount, asset, payTo, and resource")
+panel(s, 4.8, 3.0, 3.75, 2.2, "The wallet can do", "Sign and send value before a human inspects the counterparty")
+panel(s, 8.9, 3.0, 3.75, 2.2, "The missing step", "Check the asset policy, address history, and protocol surface before payment", True)
 footer(s)
 
-s = slide(); heading(s, "Three evidence checks become one verdict", 3)
-text(s, 0.7, 1.65, 11.7, 0.55, "The report keeps facts and judgment separate.", 23)
-panel(s, 0.7, 2.55, 3.75, 2.55, "01  Who controls it", "Mint policy open?\nAdmin key?\nFirst seen when?\nKnown protocol?")
-panel(s, 4.8, 2.55, 3.75, 2.55, "02  Is the code safe", "Script type and size\nPublic Aiken source\nExploit test before finding")
-panel(s, 8.9, 2.55, 3.75, 2.55, "03  Can you get in and out", "Liquidity for the amount\nTVL, UTxOs, recent txs\nSettlement Desk when paying", True)
+s = slide(); heading(s, "THE PROBLEM IS REAL", "Payment rails do not tell an agent whether the purchase was wise.", 3)
+text(s, 0.7, 1.95, 11.7, 0.55, "x402 contributors ask for chargebacks and better payment intent. Cardano users already see imitation tokens and rug-pull warnings.", 18)
+panel(s, 0.7, 2.75, 3.75, 2.7, "x402 issue #508", "Phishing-like scams behind paid pages\n\ngithub.com/x402-foundation/x402/issues/508", False, True)
+panel(s, 4.8, 2.75, 3.75, 2.7, "x402 issue #3500", "Agent paid $5.00 for a premium tier after asking for less\n\ngithub.com/x402-foundation/x402/issues/3500", False, True)
+panel(s, 8.9, 2.75, 3.75, 2.7, "38 / 100", "HN report: average fidelity across roughly 1,700 monitored services\n\nnews.ycombinator.com/item?id=47158809", True)
 footer(s)
 
-s = slide(); heading(s, "Rules stay deterministic", 4)
-text(s, 0.7, 1.65, 11.7, 0.55, "The memo can be narrated. The verdict comes from explicit rules.", 23)
-panel(s, 0.7, 2.5, 5.7, 2.8, "Assessment shape", "decision\nblockingReasons[]\nconditions[]\nevidence[]\nsubject\ncheckedAt", False, True)
-panel(s, 6.8, 2.5, 5.8, 2.8, "Rule examples", "mint policy open  →  blocking\namount above caller cap  →  blocking\nnew payTo  →  condition\nunknown protocol script  →  condition\nnon-HTTPS resource  →  blocking", True)
+s = slide(); heading(s, "WHAT CAN GO WRONG ON CARDANO", "The risk is in the asset, the address, and the script.", 4)
+text(s, 0.7, 1.95, 11.7, 0.55, "The report turns chain facts into a refusal before the agent pays.", 19)
+panel(s, 0.7, 2.9, 3.75, 2.55, "Open mint policy", "MIN.json\nscriptType=native\nrequiredSigners=1\nmintOpen=true\n\nMore supply can still be minted.", True)
+panel(s, 4.8, 2.9, 3.75, 2.55, "Fresh address", "agent-demo/runs/1791341265898.json\nSeller B tx count: 1\nFirst seen: 2026-10-06\n\nNewness becomes a condition.")
+panel(s, 8.9, 2.9, 3.75, 2.55, "Fake protocol script", "MINt.json\nmint-open / high\nliquidity: 1766.6595103971542 ADA\n\nA familiar name does not make an asset safe.")
 footer(s)
 
-s = slide(); heading(s, "A paid agent hires the Risk Desk", 5)
-text(s, 0.7, 1.65, 11.7, 0.55, "The same Coworker is available to agents, people, and Sokosumi Tasks.", 23)
-panel(s, 0.7, 2.65, 3.7, 2.1, "x402", "Agent receives HTTP 402\nPays for a risk check\nReceives the assessment", True)
-panel(s, 4.8, 2.65, 3.7, 2.1, "Human UI", "Enter a token or script\nInspect cited evidence\nChoose the next action")
-panel(s, 8.9, 2.65, 3.7, 2.1, "Sokosumi", "Hire Cardano Risk Analyst\nTask input is the target\nMasumi tracks the result")
-footer(s)
-
-s = slide(); heading(s, "The x402 flow checks the seller before payment", 6)
-steps = [("402", "Seller asks", "asset, amount, payTo, resource"), ("01", "Risk check", "x402 pays the Risk Desk"), ("02", "Evidence", "counterparty, asset, request"), ("03", "Decision", "stop or continue"), ("04", "Payment", "only after the verdict")]
+s = slide(); heading(s, "THE CHECK", "x402 becomes a payment gate, not just a payment rail.", 5)
+steps = [("402", "Seller asks", "asset · amount · payTo"), ("01", "Risk Desk", "paid assessment"), ("02", "Evidence", "policy · address · script"), ("03", "Decision", "interact or refuse"), ("04", "Payment", "sign only after check")]
 for i, (num, title, body) in enumerate(steps):
-    x = 0.7 + i * 2.45
-    panel(s, x, 2.35, 2.1, 2.55, num, f"{title}\n\n{body}", i == 2)
-text(s, 0.7, 5.55, 11.7, 0.45, "Risk Desk is the economic pause between receiving a payment request and signing it.", 18, True, INK, PP_ALIGN.CENTER)
+    panel(s, 0.7 + i * 2.45, 2.75, 2.1, 2.55, num, f"{title}\n\n{body}", i == 3)
 footer(s)
 
-s = slide(); heading(s, "Mainnet evidence: MIN", 7)
-text(s, 0.7, 1.65, 11.7, 0.55, "The stored report says DO NOT INTERACT because the native mint policy remains open.", 23)
-panel(s, 0.7, 2.45, 5.65, 2.9, "DO NOT INTERACT", "MIN\nNative policy\nRequired signers: 1\nMint policy: open\nFinding: mint-open / high", True)
-panel(s, 6.75, 2.45, 5.85, 2.9, "Source calls", "asset_info_29d222ce...\nregistry_29d222ce...\nscript_info_29d222ce...\n\nReport: engine/reports/MIN.json", False, True)
+s = slide(); heading(s, "PREPROD RUN / agent-demo/runs/1791341265898.json", "The check sent one seller payment and stopped the other.", 6)
+text(s, 0.7, 1.95, 11.7, 0.5, "The same agent handled both 402 responses on Cardano preprod. Koios confirms every proof transaction.", 18)
+panel(s, 0.7, 2.75, 3.75, 2.75, "Seller A / INTERACT", "Quote: 2,000,000 lovelace\n\nRisk check 91ae89f5...\nSeller paid 6f514c89...", True)
+panel(s, 4.8, 2.75, 3.75, 2.75, "Seller B / DO_NOT_INTERACT", "Quote: 5 custom-token units\n\nRisk check c063f45b...\nReason: asset-mint-open\nSeller payment was not sent")
+panel(s, 8.9, 2.75, 3.75, 2.75, "The branch", "INTERACT  →  pay seller\n\nDO_NOT_INTERACT  →  refuse seller", False, True)
 footer(s)
 
-s = slide(); heading(s, "Mainnet evidence: SNEK and MINt", 8)
-panel(s, 0.7, 2.05, 5.65, 3.4, "SNEK  /  INTERACT", "Native policy is timelocked\nMint policy: closed\n999 sampled holders\nTop 1: 4.0821102137%\nTop 10: 4.3279131478%\nReport: engine/reports/SNEK.json", True)
-panel(s, 6.75, 2.05, 5.85, 3.4, "MINt  /  DO NOT INTERACT", "Native policy remains open\n1 required signer\nMinswap liquidity: 1766.66 ADA\nFindings: mint-open, liquidity\nReport: engine/reports/MINt.json")
+s = slide(); heading(s, "PRODUCTION PROOF / web/lib/x402/LIVE-PROOF.json", "The live endpoint settles once and rejects a replay.", 7)
+text(s, 0.7, 1.95, 11.7, 0.5, "The production x402 call returned INTERACT. The same payment presented again returned HTTP 409.", 18)
+panel(s, 0.7, 2.85, 5.65, 2.75, "Cardano preprod", "Endpoint: cardano-risk-coworker.vercel.app/api/x402/risk-check\n\nPaid: HTTP 200\nDecision: INTERACT\nKoios confirmations: 1", True)
+panel(s, 6.75, 2.85, 5.85, 2.75, "Replay protection", "Same payment\n\nHTTP 409\n\n66d28ffbb319d191ee62bc0833af6af031c463604cba5b2121f007ce705dd5ba", False, True)
 footer(s)
 
-s = slide(); heading(s, "The pool report makes exit evidence concrete", 9)
-text(s, 0.7, 1.65, 11.7, 0.55, "Minswap V2 is identified as a known Plutus protocol script.", 23)
-panel(s, 0.7, 2.45, 5.7, 2.8, "INTERACT", "Script type: plutusV2\nScript size: 3965 bytes\nTVL: 23409267.450065 ADA\nRecent tx count: 1000\nKnown protocol: Minswap V2 pool", True)
-panel(s, 6.8, 2.45, 5.8, 2.8, "Source calls", "script_info_ea07b733...\naddress_utxos_addr1z84...\naddress_txs_addr1z84...\nReport: engine/reports/POOL-MINSWAP.json", False, True)
+s = slide(); heading(s, "ONE-LINE INTEGRATION", "Put the Risk Desk where the wallet would have signed.", 8)
+text(s, 0.7, 1.95, 11.7, 0.5, "The agent keeps its existing seller call. Add one paid check before the final payment.", 19)
+panel(s, 0.7, 2.75, 11.9, 1.65, "curl", "curl -i https://cardano-risk-coworker.vercel.app/api/x402/risk-check \\\\\n  -H 'x-payment: <signed-cardano-payment>'", False, True)
+text(s, 0.7, 5.05, 11.7, 0.45, "402  →  pay the Risk Desk  →  read the assessment  →  continue or refuse", 18, True, INK, PP_ALIGN.CENTER)
 footer(s)
 
-s = slide(); heading(s, "One agent paid one seller and refused the other", 10)
-# Source: agent-demo/runs/1791298553018.json and web/lib/x402/LIVE-PROOF.json; hashes confirmed by Koios preprod tx_status.
-text(s, 0.7, 1.65, 11.7, 0.55, "Before paying either seller, the agent paid the Risk Desk 1 ADA over x402 and acted on the verdict.", 21)
-panel(s, 0.7, 2.45, 3.75, 2.9, "Seller A  /  INTERACT", "Asks 2 ADA\nWallet: 27 txs since 5 Oct\nRisk check fc053ce1...\nPaid 3866ed31...", True)
-panel(s, 4.8, 2.45, 3.75, 2.9, "Seller B  /  DO NOT INTERACT", "Asks 5 units of an open-mint token\nAddress: 1 tx, first seen that day\nRisk check fad4fce2...\nNot paid: asset-mint-open")
-panel(s, 8.9, 2.45, 3.75, 2.9, "Production endpoint", "Live Vercel x402 call\nPayment 66d28ffb...\nVerdict INTERACT, HTTP 200\nSame payment replayed: 409", False, True)
-text(s, 0.7, 5.75, 11.7, 0.45, "The proof is the branch: evidence decides whether value moves.", 18, True, INK, PP_ALIGN.CENTER)
+s = slide(); heading(s, "WHY CARDANO + MASUMI", "Cardano supplies the evidence. Masumi supplies the accountable work.", 9)
+panel(s, 0.7, 2.25, 5.7, 3.0, "Cardano", "Native asset policies expose mint authority.\n\nAddresses and scripts are inspectable on chain.\n\nKoios turns those facts into cited evidence.", True)
+panel(s, 6.8, 2.25, 5.8, 3.0, "Masumi", "The Coworker is discoverable through Sokosumi.\n\nA task makes the decision accountable.\n\nPayment turns the check into a service an agent can hire.")
 footer(s)
 
-s = slide(); heading(s, "Why Cardano and Masumi", 11)
-panel(s, 0.7, 2.0, 5.7, 3.2, "Cardano", "Native assets carry minting policy evidence.\nPlutus scripts expose protocol surfaces.\nKoios and protocol APIs give the report its sources.", True)
-panel(s, 6.8, 2.0, 5.8, 3.2, "Masumi", "Sokosumi makes the Coworker discoverable.\nTasks make the read accountable.\nEscrow turns the evidence into paid work.")
-text(s, 0.7, 5.75, 11.7, 0.45, "Agents do not need to understand Cardano before they spend. They can hire a Coworker that does.", 18, True, INK, PP_ALIGN.CENTER)
-footer(s)
+s = slide()
+text(s, 0.8, 1.1, 11.7, 0.28, "CLOSE", 10, False, MUTED, font=MONO)
+text(s, 0.8, 1.65, 11.7, 1.25, "Let the agent move fast. Make the wallet ask first.", 42, True, INK, PP_ALIGN.CENTER, TITLE)
+text(s, 1.65, 3.45, 10.0, 0.6, "Cardano Risk Analyst is the approval step before an autonomous payment becomes an irreversible one.", 19, False, INK, PP_ALIGN.CENTER)
+text(s, 0.7, 5.25, 11.7, 0.45, "REQUEST   →   CHECK   →   APPROVE OR REFUSE", 15, True, ACCENT, PP_ALIGN.CENTER, MONO)
+text(s, 11.75, 6.95, 0.85, 0.25, "10 / 10", 10, False, MUTED, PP_ALIGN.RIGHT, MONO)
 
 out = Path(__file__).parent / "cardano-risk-analyst.pptx"
 prs.save(out)
