@@ -80,7 +80,10 @@ export async function review(input: string): Promise<{ report: string; tests: st
     const report = [
       `# Aiken Security Review\n\nRepository: ${target.repoUrl}${target.path ? `\nPath: ${target.path}` : ""}`,
       `\n## Confirmed findings\n`,
-      confirmed.length ? confirmed.map((item, index) => `### ${index + 1}. ${item.severity ?? "unknown"}: ${item.title ?? item.rule ?? "Confirmed exploit"}\n\n- Location: ${item.file ?? "unknown"}:${item.line ?? "?"}\n- Attack transaction: ${item.attackShape ?? item.attackSketch ?? "See exploit test."}\n- Suggested fix: ${item.suggestedFix ?? item.recommendation ?? "See exploit test."}`).join("\n\n") : "No exploitable findings confirmed.",
+      confirmed.length ? confirmed.map((item, index) => {
+        const candidate = (item.candidate as RecordValue | undefined) ?? item;
+        return `### ${index + 1}. ${item.severity ?? candidate.rule ?? "unknown"}: ${item.title ?? candidate.rule ?? "Confirmed exploit"}\n\n- Location: ${candidate.file ?? "unknown"}:${candidate.line ?? "?"}\n- Attack transaction: ${item.attackShape ?? candidate.attackSketch ?? "See exploit test."}\n- Suggested fix: ${item.suggestedFix ?? item.recommendation ?? "See exploit test."}`;
+      }).join("\n\n") : "No exploitable findings confirmed.",
       `\n## Needs review\n`,
       needsReview.length ? needsReview.map((item) => `- ${item.rule ?? "candidate"} at ${item.file ?? "unknown"}:${item.line ?? "?"}: ${item.why ?? "candidate was not confirmed"}`).join("\n") : "None.",
       `\nEvery reported finding has a passing attack test against the submitted source.`,
