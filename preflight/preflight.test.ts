@@ -1,9 +1,11 @@
 import { expect, test } from "bun:test";
-import { canonicalJson, preflight, termsHash } from "./index.ts";
+import { canonicalJson, nativePolicyOpen, preflight, termsHash } from "./index.ts";
 
 const established = "addr_test1qp3d5uypvnx8ujr2mjdppu2whvrraps8ac7he3fj63zfjv3jctq4qksmzd858a52pajdtyl0fg6kf9gwaxql9emvn7gsa04dkf";
+const mainnetAddress = "addr1q93k6rgprz5fxwkpvl2vgjq4pwejth400f8aldz2m3lj7khrnd05p259l0qjrf396am6wahv5895ey35y62fexta3q5q3cc3k8";
 const fresh = "addr_test1qp7rx8u74gaezymd9xumue7cu7c7rjsx2h70qyhu2c7jds4n90s8u5jzxl8wcrl5lle67l6fps63mcudn4ygx5lv6ezsevc4fz";
 const tusdm = "e675b46e4d2242c991a8932a99db3044e80515ae14b4c4ccf6b3f4c9.0014df10745553444d";
+const snek = "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f.534e454b";
 const fixtures = `${import.meta.dir}/fixtures`;
 const deps = { fixtureDir: `${fixtures}/established` };
 
@@ -63,4 +65,18 @@ test("HTTPS scheme parsing is case insensitive", async () => {
 test("amount cap is not compared across asset units", async () => {
   const assessment = await preflight({ type: "x402_payment", network: "cardano:preprod", payTo: established, asset: tusdm, amount: "50000000", maxAmount: "1", maxAmountAsset: "lovelace", resource: "https://seller.example/data", maxTimeoutSeconds: 600 }, { fixtureDir: `${fixtures}/fresh-open` });
   expect(assessment.blockingReasons).not.toContain("amount-over-cap");
+});
+
+test("recorded Koios SNEK policy is closed without blocking payment", async () => {
+  const assessment = await preflight({ type: "x402_payment", network: "cardano:mainnet", payTo: mainnetAddress, asset: snek, amount: "1", maxAmount: "2", resource: "https://seller.example/data" }, { fixtureDir: `${fixtures}/snek-closed` });
+  expect(assessment.decision).not.toBe("DO_NOT_INTERACT");
+  expect(assessment.blockingReasons).not.toContain("asset-mint-open");
+  expect(assessment.evidence).toContainEqual(expect.objectContaining({ rule: "asset-mint-policy", value: expect.stringContaining("controlled") }));
+});
+
+test("native policy semantics use the current slot and combinators", () => {
+  expect(nativePolicyOpen({ type: "sig", keyHash: "key" }, 100)).toBe(true);
+  expect(nativePolicyOpen({ type: "all", scripts: [{ type: "sig" }, { type: "before", slot: 99 }] }, 100)).toBe(false);
+  expect(nativePolicyOpen({ type: "any", scripts: [{ type: "before", slot: 99 }, { type: "after", slot: 100 }] }, 100)).toBe(true);
+  expect(nativePolicyOpen({ type: "atLeast", required: 2, scripts: [{ type: "sig" }, { type: "before", slot: 99 }, { type: "after", slot: 100 }] }, 100)).toBe(true);
 });

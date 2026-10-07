@@ -53,6 +53,7 @@ export type PaymentFacts = {
   script?: any;
   asset?: any;
   assetPolicy?: any;
+  currentSlot?: number;
 };
 
 export type DelegatedReport = RiskReport;

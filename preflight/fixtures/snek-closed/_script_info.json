@@ -1,0 +1,1 @@
+[{"script_hash":"279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f","creation_tx_hash":"bda114e910c35292c8941a902b0d8854f1998f5c557b3f124ebf15e25d26fadf","type":"timelock","value":{"type":"all","scripts":[{"slot":90915881,"type":"before"},{"type":"sig","keyHash":"39a1df51147b6de6689a4727846962fb6540c3a3c7859a1a79b9420f"}]}}]

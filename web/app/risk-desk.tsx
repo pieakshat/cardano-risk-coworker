@@ -148,7 +148,7 @@ export default function RiskDesk() {
           <a href="#agent">For agents</a>
           <a href="/security">Code review</a>
           <a href="/deck">Deck</a>
-          <a className={styles.hire} href={process.env.NEXT_PUBLIC_COWORKER_URL || "https://preprod.sokosumi.com"}>Hire on Sokosumi</a>
+          <a className={styles.hire} href="https://preprod.sokosumi.com/coworkers/01a11080-a6c3-7686-abf4-b0d1594cb82b">Hire on Sokosumi</a>
         </nav>
       </header>
 

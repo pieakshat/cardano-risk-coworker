@@ -2,7 +2,7 @@
 
 ## Name
 
-Cardano Risk Analyst
+Cardano Risk Desk
 
 ## Tracks
 
@@ -11,7 +11,7 @@ Cardano Risk Analyst
 
 ## 150-word write-up
 
-Cardano Risk Analyst is a pre-flight payment decision for autonomous agents. Before an agent pays a Cardano seller, it pays the Risk Desk 1 ADA over x402 and receives `INTERACT`, `INTERACT WITH CONDITIONS`, or `DO_NOT_INTERACT` with rule ids and evidence calls. The live proof runs one agent against two sellers. Seller A asks 2 ADA, its receiving wallet has 27 transactions since 5 October, and the agent receives `INTERACT` before paying it. Seller B requests a token whose mint policy is open and uses a receiving address with one transaction first seen that day. The agent receives `DO_NOT_INTERACT` with `asset-mint-open`, `counterparty-first-seen`, and `counterparty-tx-count`, then follows the refusal branch. The production x402 endpoint settles the paid decision on Cardano preprod and rejects a replay with HTTP 409. Masumi records the paid task, while Koios and protocol data supply the cited evidence. Integration is one guard before the seller signature.
+Cardano Risk Desk is a pre-flight payment decision for autonomous agents. Before an agent pays a Cardano seller, it pays the Risk Desk 1 ADA over x402 and receives `INTERACT`, `INTERACT WITH CONDITIONS`, or `DO_NOT_INTERACT` with rule ids and evidence calls. The live proof runs one agent against two sellers. Seller A asks 2 ADA, its receiving wallet has 27 transactions since 5 October, and the agent receives `INTERACT` before paying it. Seller B requests a token whose mint policy is open and uses a receiving address with one transaction first seen that day. The agent receives `DO_NOT_INTERACT` with `asset-mint-open`, `counterparty-first-seen`, and `counterparty-tx-count`, then follows the refusal branch. The production x402 payment is confirmed on Cardano preprod in transaction `66d28ffb319d191ee62bc0833af6af031c463604cba5b2121f007ce705dd5ba`, and replaying it returns HTTP 409. Koios and protocol data supply the cited evidence. Integration is one guard before the seller signature.
 
 ## Stack
 

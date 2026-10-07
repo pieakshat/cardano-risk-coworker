@@ -88,12 +88,19 @@ export function paymentAddressValid(payTo: string, network: "mainnet" | "preprod
   return network === "mainnet" ? networkId > 0 : networkId === 0;
 }
 
-function nativePolicyOpen(value: any): boolean {
+export function nativePolicyOpen(value: any, currentSlot?: number): boolean {
   if (!value) return true;
-  if (value.type === "before") return Number(value.slot) > 0;
-  if (value.type === "after") return false;
+  if (value.type === "before") return currentSlot === undefined || currentSlot < Number(value.slot);
+  if (value.type === "after") return currentSlot === undefined || currentSlot >= Number(value.slot);
   if (value.type === "sig") return true;
-  return (value.scripts ?? []).some((script: any) => nativePolicyOpen(script));
+  const scripts = value.scripts ?? [];
+  if (value.type === "all") return scripts.every((script: any) => nativePolicyOpen(script, currentSlot));
+  if (value.type === "any") return scripts.some((script: any) => nativePolicyOpen(script, currentSlot));
+  if (value.type === "atLeast") {
+    const required = Number(value.required ?? value.required_scripts ?? 0);
+    return scripts.filter((script: any) => nativePolicyOpen(script, currentSlot)).length >= required;
+  }
+  return true;
 }
 
 async function paymentFacts(input: PaymentInput, deps: Required<PreflightDeps>): Promise<PaymentFacts> {
@@ -108,8 +115,11 @@ async function paymentFacts(input: PaymentInput, deps: Required<PreflightDeps>):
   const script = hash ? (await request(network, "/script_info", { method: "POST", body: JSON.stringify({ _script_hashes: [hash] }) }, deps))[0] : undefined;
   const assetUnit = input.asset && input.asset !== "lovelace" ? input.asset.replace(".", "").toLowerCase() : undefined;
   const asset = assetUnit ? (await request(network, "/asset_info", { method: "POST", body: JSON.stringify({ _asset_policy: assetUnit.slice(0, 56), _asset_name: assetUnit.slice(56) }) }, deps))[0] : undefined;
-  const assetPolicy = assetUnit ? (await request(network, "/script_info", { method: "POST", body: JSON.stringify({ _script_hashes: [assetUnit.slice(0, 56)] }) }, deps))[0] : undefined;
-  return { addressInfo, txs: Array.isArray(txs) ? txs : [], utxos: Array.isArray(utxos) ? utxos : [], script, asset, assetPolicy };
+  const [assetPolicy, tip] = assetUnit ? await Promise.all([
+    request(network, "/script_info", { method: "POST", body: JSON.stringify({ _script_hashes: [assetUnit.slice(0, 56)] }) }, deps),
+    request(network, "/tip", { method: "GET" }, deps),
+  ]) : [undefined, undefined];
+  return { addressInfo, txs: Array.isArray(txs) ? txs : [], utxos: Array.isArray(utxos) ? utxos : [], script, asset, assetPolicy: assetPolicy?.[0], currentSlot: Number(tip?.[0]?.abs_slot) || undefined };
 }
 
 function assessPayment(input: PaymentInput, facts: PaymentFacts, now: string): Assessment {
@@ -145,7 +155,7 @@ function assessPayment(input: PaymentInput, facts: PaymentFacts, now: string): A
     const policy = facts.asset?.policy_id;
     const script = facts.assetPolicy;
     const plutus = Boolean(script && /^plutus/i.test(String(script.type)));
-    const open = facts.asset?.mint_cnt > 0 && (plutus || nativePolicyOpen(script?.value));
+    const open = facts.asset?.mint_cnt > 0 && (plutus || nativePolicyOpen(script?.value, facts.currentSlot));
     evidence.push({ rule: plutus ? "mint-policy-plutus" : "asset-mint-policy", value: `${policy ?? "unknown"}:${open ? "open" : "controlled"}`, source: source(network, "/asset_info") });
     if (plutus) conditions.push("mint-policy-plutus");
     else if (open) { blockingReasons.push("asset-mint-open"); ruleIds.push("asset-mint-open"); }
