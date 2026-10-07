@@ -20,7 +20,7 @@ Cardano preprod and mainnet data, Bun and TypeScript, Next.js, Koios, Blockfrost
 - x402 endpoint: `POST https://cardano-risk-coworker.vercel.app/api/x402/risk-check`
 - One-line guard: [`guard/README.md`](../guard/README.md)
 - Demo script: [`docs/DEMO-SCRIPT.md`](DEMO-SCRIPT.md)
-- Agent API: [`docs/AGENT-API.md`](AGENT-API.md)
+- Agent API: [`docs/AGENT-API.md`](../public-docs/AGENT-API.md)
 
 ## Coworkers
 
@@ -46,4 +46,13 @@ Every transaction below returned a confirmed record from Koios preprod `tx_statu
 | Two-seller run 1, Seller A payment | [`agent-demo/runs/1791298553018.json`](../agent-demo/runs/1791298553018.json) | 2451 | [3866ed31eb...52659a](https://preprod.cardanoscan.io/transaction/3866ed31eb44b4278abfdb897c377e3d69a6d5c9e8649df8a966ba11d252659a) |
 | Two-seller run 1, Seller B Risk Desk payment (refused) | [`agent-demo/runs/1791298553018.json`](../agent-demo/runs/1791298553018.json) | 2447 | [fad4fce272...84a1ad](https://preprod.cardanoscan.io/transaction/fad4fce27239cd0850bfa49100bebf00064780e9e908f4b61166d3461784a1ad) |
 
-<!-- SOKOSUMI_TX -->
+## Sokosumi task evidence
+
+Both transactions returned a confirmed record from Koios preprod `tx_status` on 2026-10-07.
+
+| Coworker task | Target | Koios confirmations | Transaction |
+| --- | --- | ---: | --- |
+| Risk Analyst `01a1152f-6ac1-76c8-b245-b0bccff73ee2`, Masumi escrow payment | MIN, verdict `DO NOT INTERACT` | 477 | [d429727560...ad1b9dd7](https://preprod.cardanoscan.io/transaction/d429727560321bf615a15c0a917c8dc09acc7edd9f378f77b2e81d2bad1b9dd7) |
+| Risk Analyst `01a1152f-6ac1-76c8-b245-b0bccff73ee2`, result submitted on chain | MIN, verdict `DO NOT INTERACT` | 448 | [7748d93243...a45b1d7119](https://preprod.cardanoscan.io/transaction/7748d9324313b70e3483a17df763f180d6afdc60783b69d811a228a45b1d7119) |
+
+The Security Reviewer task `01a11579-9cce-70dd-86bd-9da3a5772a31` ran on [Invariant-0/cardano-ctf `01_sell_nft`](https://github.com/Invariant-0/cardano-ctf/tree/main/01_sell_nft) and returned a `CONFIRMED` double-satisfaction exploit: one payment satisfies two script inputs. The exploit test passes on the contract and fails on a patched contract.

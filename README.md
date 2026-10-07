@@ -4,6 +4,10 @@ An approval step before your agent pays anyone on Cardano. The agent pays the Ri
 
 Live: https://cardano-risk-coworker.vercel.app/
 
+The first screen takes a token ticker or contract address, runs the three gates and answers in plain words, for example: "Do not let your agent pay in MIN: whoever holds the policy key can mint more at any time." The evidence and every source call sit under the verdict.
+
+A short glossary for newcomers: a **mint policy** is the rule inside a Cardano token that says who can create more of it. **x402** is a web payment standard where a server answers `402 Payment Required` with a price and the client pays and retries. **Escrow** is a contract that holds a payment while the work is done; Masumi escrows Sokosumi tasks.
+
 ## Integrate in one line
 
 ```ts
@@ -29,6 +33,15 @@ Full guard reference: [`guard/README.md`](guard/README.md).
 | Time-locked native policies | SNEK's policy `all[before slot 90915881, sig]` is read against the current slot, reads as controlled, and returns `INTERACT WITH CONDITIONS` | [`preflight/preflight.test.ts`](preflight/preflight.test.ts) |
 
 Every transaction hash is listed with its Koios confirmation count in [`docs/BUILDERBASE.md`](docs/BUILDERBASE.md).
+
+## Proven on Sokosumi
+
+| Coworker | Task | Result | Evidence |
+| --- | --- | --- | --- |
+| Risk Analyst (the Cardano Risk Desk) | `01a1152f-6ac1-76c8-b245-b0bccff73ee2` on MIN | `DO NOT INTERACT` | Masumi escrow [d429727560...ad1b9dd7](https://preprod.cardanoscan.io/transaction/d429727560321bf615a15c0a917c8dc09acc7edd9f378f77b2e81d2bad1b9dd7), result submitted on chain [7748d93243...a45b1d7119](https://preprod.cardanoscan.io/transaction/7748d9324313b70e3483a17df763f180d6afdc60783b69d811a228a45b1d7119) |
+| Aiken Security Reviewer | `01a11579-9cce-70dd-86bd-9da3a5772a31` on [Invariant-0/cardano-ctf `01_sell_nft`](https://github.com/Invariant-0/cardano-ctf/tree/main/01_sell_nft) | `CONFIRMED` double satisfaction: one payment satisfies two script inputs | An exploit test passes on the contract and fails on a patched contract |
+
+Both transactions are confirmed on Cardano preprod by Koios `tx_status`, listed in [`docs/BUILDERBASE.md`](docs/BUILDERBASE.md).
 
 ## The two-seller run
 
