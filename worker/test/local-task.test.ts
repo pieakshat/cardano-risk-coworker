@@ -26,7 +26,7 @@ test("a recorded MIN task produces a grounded memo and report", async () => {
     const result = await writeMemo(report);
     assert.equal(result.json.unit, report.unit);
     assert.match(result.markdown, /## Verdict|Verdict/);
-    assert.match(result.markdown, /HIGH|MEDIUM|LOW/);
+    assert.match(result.markdown, /DO NOT INTERACT|INTERACT WITH CONDITIONS|INTERACT/);
   } finally {
     if (previousFixtures === undefined) delete process.env.RISK_FIXTURES;
     else process.env.RISK_FIXTURES = previousFixtures;

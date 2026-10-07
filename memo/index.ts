@@ -35,15 +35,19 @@ function prompt(facts: ReturnType<typeof memoFacts>, retry = false): string {
   return `${retry ? "Your previous answer used a number that is not in the facts. " : ""}You are a Cardano risk analyst writing for a buyer deciding whether to interact with this contract. Write ONE paragraph of 2 to 4 sentences, no headings, no lists: state INTERACT, INTERACT WITH CONDITIONS, or DO NOT INTERACT, explain the strongest reason, then what would change the verdict. Use ONLY these facts and copy any number exactly as written. Plain words, no hype, no field names.\n\nFACTS:\n${JSON.stringify(facts, null, 1)}`;
 }
 
-function deterministicMemo(r: RiskReport, facts = memoFacts(r)): string {
+export function deterministicMemo(r: RiskReport, facts = memoFacts(r)): string {
   const flags = facts.redFlags.length
     ? facts.redFlags.map((f) => `- **${f.title}** (${f.severity}). ${f.meaning} Evidence: ${f.evidence}`).join("\n")
     : "- None of the checks fired.";
   const pools = facts.liquidity.largestPools.map((p) => `${p.pair} on ${p.dex} (${p.tvlAda} ADA)`).join(", ");
-  const minting = facts.minting.mintOpen
+  const minting = facts.minting.scriptType === "plutus"
+    ? "The minting policy is programmable, so this report does not classify it as an open native mint or as provably closed."
+    : facts.minting.mintOpen
     ? `The minting policy is a ${facts.minting.scriptType} script with ${facts.minting.requiredSigners} required signer${facts.minting.requiredSigners === 1 ? "" : "s"} and no time lock, so more can be minted.`
     : `Minting is closed${facts.minting.timelockedBefore ? ` (time lock passed ${facts.minting.timelockedBefore})` : ""}; supply cannot grow.`;
-  const holders = `${facts.holders.sampled ? `Among the ${facts.holders.addressesSampled} largest holder addresses (${facts.holders.source}), ` : ""}the largest wallet holds ${facts.holders.top1Pct}% of supply, the top 10 hold ${facts.holders.top10Pct}%, and contracts such as DEX pools hold ${facts.holders.heldByContractsPct}%.`;
+  const holders = facts.holders.sampled
+    ? `Among the ${facts.holders.addressesSampled} largest holder addresses (${facts.holders.source}), the largest wallet holds ${facts.holders.top1Pct}% of supply, the top 10 hold ${facts.holders.top10Pct}%, and contracts such as DEX pools hold ${facts.holders.heldByContractsPct}%.`
+    : "Holder concentration is unavailable because the available address list is not quantity ordered.";
   return `## Verdict\n**${facts.verdict}**. ${facts.redFlags[0] ? facts.redFlags[0].meaning : "No red flag fired on mint control, holder concentration, registry status, liquidity or age."}\n\n## What this token is\n${facts.token.name} (${facts.token.ticker})${facts.token.inRegistry ? ", listed in the Cardano token registry" : ", not in the Cardano token registry"}. Unit \`${facts.token.unit}\`.\n\n## Who controls minting\n${minting}\n\n## Who holds it\n${holders}\n\n## Can you exit\n${facts.liquidity.totalTvlAda} ADA of liquidity across ${facts.liquidity.poolCount} pools. Largest: ${pools || "none"}.\n\n## Red flags\n${flags}\n\n## Sources\n${r.sources.map((s) => `- ${s.call} (${s.at})`).join("\n")}`;
 }
 

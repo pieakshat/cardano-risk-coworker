@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { analyzeWith, holderConcentration, top1IsHigh, unknownScriptFinding } from "./engine.ts";
+import { analyzeWith, holderConcentration, policyState, slotToTime, top1IsHigh, unknownScriptFinding } from "./engine.ts";
 import type { Fetcher } from "./types.ts";
 
 const root = `${import.meta.dir}/fixtures`;
@@ -73,4 +73,12 @@ test("unknown large script is a medium finding", () => {
   expect(unknownScriptFinding(false, 100_001)?.severity).toBe("medium");
   expect(unknownScriptFinding(false, 100_001)?.title).toBe("Unknown contract holds significant value");
   expect(unknownScriptFinding(true, 1_000_000)).toBeUndefined();
+});
+
+test("native policy evaluation honors combinators and expired before locks", () => {
+  expect(policyState({ type: "any", scripts: [{ type: "sig" }, { type: "sig" }, { type: "sig" }] }, "native").requiredSigners).toBe(1);
+  expect(policyState({ type: "atLeast", required: 2, scripts: [{ type: "sig" }, { type: "sig" }, { type: "sig" }] }, "native").requiredSigners).toBe(2);
+  expect(policyState({ type: "all", scripts: [{ type: "before", slot: 9_091_588_1 }, { type: "sig" }] }, "native").mintOpen).toBe(false);
+  expect(policyState({ type: "all", scripts: [{ type: "before", slot: 9_999_999_999 }, { type: "sig" }] }, "native").mintOpen).toBe(true);
+  expect(slotToTime(90_915_881)).toBe("2023-04-26T04:09:32.000Z");
 });

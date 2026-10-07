@@ -26,6 +26,12 @@ const settlement = (input: string) => {
   });
 };
 
+export const SETTLEMENT_DISABLED_ERROR = "Settlement tasks are disabled: escrow payment, seller risk checks, host validation, and spend caps are not enabled on this worker.";
+
+export function rejectSettlementTask(input: string): void {
+  if (/^pay\s+/i.test(input)) throw new Error(SETTLEMENT_DISABLED_ERROR);
+}
+
 const core = (path: string, init: RequestInit = {}) => fetch(`${env("SOKOSUMI_API_URL", "https://api.preprod.sokosumi.com/v1")}${path}`, {
   ...init,
   headers: { authorization: `Bearer ${env("SOKOSUMI_COWORKER_API_KEY")}`, "content-type": "application/json", ...(init.headers ?? {}) },
@@ -76,6 +82,7 @@ async function processTask(task: RecordValue): Promise<void> {
   try {
     const input = taskInput(task);
     const isSettlement = /^pay\s+/i.test(input);
+    rejectSettlementTask(input);
     const token = isSettlement ? input : tokenInput(input);
     if (!token) {
       const result = "Usage: submit a Cardano token ticker (for example, SNEK) or a 56+ character asset unit.";
@@ -110,4 +117,4 @@ async function main(): Promise<void> {
   setInterval(() => once().catch((error) => console.error(error instanceof Error ? error.message : error)), Number(env("POLL_SECONDS", "15")) * 1000);
 }
 
-main().catch((error) => { console.error(error instanceof Error ? error.message : error); process.exitCode = 1; });
+if (import.meta.main) main().catch((error) => { console.error(error instanceof Error ? error.message : error); process.exitCode = 1; });

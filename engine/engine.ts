@@ -6,12 +6,14 @@ const MINSWAP = "https://api-mainnet-prod.minswap.org";
 const REGISTRY = "https://tokens.cardano.org/metadata";
 const BLOCKFROST = "https://cardano-mainnet.blockfrost.io/api/v0";
 const now = () => new Date().toISOString();
-const MAINNET_SYSTEM_START = Date.parse("2020-07-29T21:44:51Z");
+const MAINNET_SYSTEM_START = 1596059091;
+const MAINNET_BYRON_SLOTS = 4_492_800;
 const registryValue = (value: any) => value && typeof value === "object" && "value" in value ? value.value : value;
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { resolve as pathResolve } from "node:path";
+import knownScripts from "./known-scripts.json";
 
 // ponytail: file cache keyed by URL+body, 6h TTL; Koios asset_addresses takes ~55 s for large tokens (measured on MIN), so repeat Tasks must not refetch
 const CACHE_DIR = process.env.VERCEL ? "/tmp/risk-engine-cache/" : `${process.cwd().endsWith("/web") ? pathResolve(process.cwd(), "../engine/cache") : pathResolve(process.cwd(), "engine/cache")}/`;
@@ -103,9 +105,12 @@ async function request(ctx: Context, call: string, url: string, init?: RequestIn
 async function resolve(ctx: Context, input: string) {
   const parts = inputParts(input);
   if (parts.ticker) {
-    const body = await request(ctx, `minswap_search_${parts.ticker.toUpperCase()}`, `${MINSWAP}/v1/assets/metrics`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ term: parts.ticker, limit: 20, only_verified: false }) });
-    const assets = body.asset_metrics ?? [];
-    const match = assets.find((row: any) => String(row.asset?.metadata?.ticker ?? "").toUpperCase() === parts.ticker!.toUpperCase()) ?? assets[0];
+    const body = await request(ctx, `minswap_search_${parts.ticker.toUpperCase()}`, `${MINSWAP}/v1/assets/metrics`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ term: parts.ticker, limit: 20, only_verified: true }) });
+    let match = (body.asset_metrics ?? []).find((row: any) => String(row.asset?.metadata?.ticker ?? "").toUpperCase() === parts.ticker!.toUpperCase());
+    if (!match) {
+      const fallback = await request(ctx, `minswap_search_unverified_${parts.ticker.toUpperCase()}`, `${MINSWAP}/v1/assets/metrics`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ term: parts.ticker, limit: 100, only_verified: false }) });
+      match = (fallback.asset_metrics ?? []).find((row: any) => String(row.asset?.metadata?.ticker ?? "").toUpperCase() === parts.ticker!.toUpperCase());
+    }
     if (!match) throw new Error(`Unable to resolve ticker ${input}`);
     parts.unit = `${match.asset.currency_symbol}${match.asset.token_name}`.toLowerCase();
   }
@@ -148,9 +153,8 @@ async function policy(ctx: Context, policyId: string) {
   const scriptRows = await request(ctx, `script_info_${policyId}`, `${KOIOS}/script_info`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ _script_hashes: [policyId] }) });
   const row = scriptRows?.[0];
   const script = row?.script ?? row?.script_json ?? row?.value;
-  const requiredSigners = script?.scripts?.filter((item: any) => item.type === "sig").length ?? (script?.type === "sig" ? 1 : 0);
-  const timelock = script?.scripts?.find((item: any) => item.type === "before")?.slot;
-  return { scriptType: row?.type === "native" || row?.type === "timelock" || script?.type === "all" || script?.type === "sig" ? "native" : row ? "plutus" : "unknown", requiredSigners, timelock } as const;
+  const scriptType = row?.type === "native" || row?.type === "timelock" || script?.type === "all" || script?.type === "sig" || script?.type === "any" || script?.type === "atLeast" ? "native" : row ? "plutus" : "unknown";
+  return { scriptType, ...policyState(script, scriptType) } as const;
 }
 
 export async function analyzeWith(fetcher: Fetcher, input: string, fixtureDir?: string): Promise<RiskReport> {
@@ -165,20 +169,25 @@ export async function analyzeWith(fetcher: Fetcher, input: string, fixtureDir?: 
     pools(ctx, resolved.unit),
   ]);
   const supply = BigInt(asset.total_supply ?? 0);
-  const concentration = { ...holderConcentration(addressRows.map((row: any) => ({ address: String(row.payment_address ?? row.address ?? ""), quantity: BigInt(row.quantity ?? 0) })), supply), sampled: addressRows.length >= 100 };
+  const hasReliableHolders = Boolean(process.env.BLOCKFROST_API_KEY_MAINNET && !fixtureDir && fetcher === fetch);
+  const concentration = hasReliableHolders
+    ? { ...holderConcentration(addressRows.map((row: any) => ({ address: String(row.payment_address ?? row.address ?? ""), quantity: BigInt(row.quantity ?? 0) })), supply), sampled: true }
+    : { count: 0, top1Pct: 0, top10Pct: 0, scriptHeldPct: 0, sampled: false };
   const liquidity = poolRows as RiskReport["liquidity"]["pools"];
   const identity = registry && typeof registry === "object" && registry.name ? { registryName: registryValue(registry.name), ticker: registryValue(registry.ticker), decimals: registryValue(registry.decimals), url: registryValue(registry.url), inRegistry: true } : { inRegistry: false };
   const findings: Finding[] = [];
-  if (!policyData.timelock && policyData.requiredSigners < 2) findings.push({ id: "mint-open", severity: "high", title: "Mint policy remains open", evidence: `scriptType=${policyData.scriptType}, requiredSigners=${policyData.requiredSigners}; Koios script_info` });
-  if (top1IsHigh(concentration.top1Pct)) findings.push({ id: "top1", severity: "high", title: "One non-script holder controls over 30%", evidence: `top1Pct=${concentration.top1Pct.toFixed(2)}%; Koios asset_addresses` });
-  if (concentration.top10Pct > RULES.top10MediumPct) findings.push({ id: "top10", severity: "medium", title: "Top ten non-script holders control over 70%", evidence: `top10Pct=${concentration.top10Pct.toFixed(2)}%; Koios asset_addresses` });
+  if (policyData.mintOpen) findings.push({ id: "mint-open", severity: "high", title: "Mint policy remains open", evidence: `scriptType=${policyData.scriptType}, requiredSigners=${policyData.requiredSigners}; Koios script_info` });
+  if (policyData.scriptType === "plutus") findings.push({ id: "mint-policy-plutus", severity: "medium", title: "Mint policy is programmable", evidence: "scriptType=plutus; Koios script_info" });
+  if (!hasReliableHolders) findings.push({ id: "holders-unknown", severity: "medium", title: "Holder concentration is unavailable", evidence: "Blockfrost largest-holder data was not available; Koios asset_addresses is not quantity ordered" });
+  else if (top1IsHigh(concentration.top1Pct)) findings.push({ id: "top1", severity: "high", title: "One non-script holder controls over 30%", evidence: `top1Pct=${concentration.top1Pct.toFixed(2)}%; Blockfrost asset addresses` });
+  if (hasReliableHolders && concentration.top10Pct > RULES.top10MediumPct) findings.push({ id: "top10", severity: "medium", title: "Top ten non-script holders control over 70%", evidence: `top10Pct=${concentration.top10Pct.toFixed(2)}%; Blockfrost asset addresses` });
   if (!identity.inRegistry) findings.push({ id: "registry", severity: "medium", title: "Token is absent from the Cardano token registry", evidence: `unit=${resolved.unit}; tokens.cardano.org/metadata` });
   const totalTvlAda = liquidity.reduce((total, pool) => total + pool.tvlAda, 0);
   if (totalTvlAda < RULES.lowLiquidityAda) findings.push({ id: "liquidity", severity: "medium", title: "Minswap liquidity is below 10,000 ADA", evidence: `totalTvlAda=${totalTvlAda.toFixed(2)}; Minswap pools/metrics` });
   const firstSeen = new Date(Number(asset.creation_time) * 1000).toISOString();
   if (Date.now() - Date.parse(firstSeen) < RULES.youngTokenDays * 86_400_000) findings.push({ id: "young", severity: "medium", title: "Token is younger than 30 days", evidence: `firstSeen=${firstSeen}; Koios asset_info` });
   const score = verdict(findings);
-  return { input, target: "token", unit: resolved.unit, policyId: resolved.policyId, assetNameAscii: asset.asset_name_ascii ?? hexAscii(asset.asset_name), fingerprint: asset.fingerprint, identity, policy: { scriptType: policyData.scriptType, ...(policyData.timelock ? { timelockedBefore: new Date(MAINNET_SYSTEM_START + Number(policyData.timelock) * 1000).toISOString() } : {}), requiredSigners: policyData.requiredSigners, mintOpen: !policyData.timelock }, supply: { total: String(asset.total_supply), mintTxCount: Number(asset.mint_cnt ?? 0), burnTxCount: Number(asset.burn_cnt ?? 0) }, holders: concentration, liquidity: { pools: liquidity, totalTvlAda }, activity: { firstSeen }, findings, verdict: score, verdictLabel: verdictLabel(score), sources: ctx.sources };
+  return { input, target: "token", unit: resolved.unit, policyId: resolved.policyId, assetNameAscii: asset.asset_name_ascii ?? hexAscii(asset.asset_name), fingerprint: asset.fingerprint, identity, policy: { scriptType: policyData.scriptType, ...(policyData.timelock ? { timelockedBefore: slotToTime(policyData.timelock) } : {}), requiredSigners: policyData.requiredSigners, mintOpen: policyData.mintOpen }, supply: { total: String(asset.total_supply), mintTxCount: Number(asset.mint_cnt ?? 0), burnTxCount: Number(asset.burn_cnt ?? 0) }, holders: concentration, liquidity: { pools: liquidity, totalTvlAda }, activity: { firstSeen }, findings, verdict: score, verdictLabel: verdictLabel(score), sources: ctx.sources };
 }
 
 async function analyzeScriptWith(fetcher: Fetcher, input: string, fixtureDir?: string): Promise<RiskReport> {
@@ -210,14 +219,15 @@ async function analyzeScriptWith(fetcher: Fetcher, input: string, fixtureDir?: s
     assets.clear();
     for (const asset of totals.amount) asset.unit === "lovelace" ? lovelace = BigInt(asset.quantity) : assets.set(asset.unit, BigInt(asset.quantity));
   }
-  const firstSeen = rows.map((row: any) => row.block_time ?? row.block_time_epoch).filter(Boolean).sort()[0] ? new Date(Number(rows.map((row: any) => row.block_time ?? row.block_time_epoch).filter(Boolean).sort()[0]) * 1000).toISOString() : new Date().toISOString();
+  const txTimes = (Array.isArray(txs) ? txs : []).map((row: any) => row.block_time ?? row.block_time_epoch).filter(Boolean).map(Number);
+  const firstSeen = txTimes.length ? new Date(Math.min(...txTimes) * 1000).toISOString() : "unknown";
   const scriptType = info.type ?? script.type ?? (info.script ? "plutus" : "unknown");
   const known = knownScript(scriptHash);
   const tvlAda = Number(lovelace) / 1_000_000;
   const findings: Finding[] = [];
   const unknownValueFinding = unknownScriptFinding(Boolean(known), tvlAda);
   if (unknownValueFinding) findings.push(unknownValueFinding);
-  if (Date.now() - Date.parse(firstSeen) < RULES.youngScriptDays * 86_400_000) findings.push({ id: "young-script", severity: "medium", title: "Script is younger than 30 days", evidence: `firstSeen=${firstSeen}; Koios address_utxos` });
+  if (firstSeen !== "unknown" && Date.now() - Date.parse(firstSeen) < RULES.youngScriptDays * 86_400_000) findings.push({ id: "young-script", severity: "medium", title: "Script is younger than 30 days", evidence: `firstSeen=${firstSeen}; Koios address_txs` });
   if (known) findings.push({ id: "known-protocol", severity: "info", title: `Known protocol: ${known.protocol}`, evidence: known.source });
   const adminKeyCount = Number(script.admin_key_count ?? script.required_signers ?? 0);
   if (adminKeyCount === 1) findings.push({ id: "single-admin-key", severity: "high", title: "Datum exposes a single admin key", evidence: "admin_key_count=1; Koios script_info datum fields" });
@@ -226,7 +236,37 @@ async function analyzeScriptWith(fetcher: Fetcher, input: string, fixtureDir?: s
 }
 
 function knownScript(hash: string): { protocol: string; source: string } | undefined {
-  try { const entries = JSON.parse(readFileSync(pathResolve(process.cwd(), "engine/known-scripts.json"), "utf8")); return entries.find((entry: any) => entry.scriptHashes?.includes(hash)); } catch { return undefined; }
+  return knownScripts.find((entry) => entry.scriptHashes?.includes(hash));
+}
+
+type NativeScript = { type?: string; slot?: number; required?: number; scripts?: NativeScript[] };
+
+function minimumSigners(script: NativeScript | undefined): number {
+  if (!script) return 0;
+  if (script.type === "sig") return 1;
+  const children = script.scripts ?? [];
+  if (script.type === "all") return children.reduce((sum, child) => sum + minimumSigners(child), 0);
+  if (script.type === "any") return children.length ? Math.min(...children.map(minimumSigners)) : 0;
+  if (script.type === "atLeast") return children.map(minimumSigners).sort((a, b) => a - b).slice(0, script.required ?? 0).reduce((sum, value) => sum + value, 0);
+  return children.length ? minimumSigners(children[0]) : 0;
+}
+
+function beforeSlot(script: NativeScript | undefined): number | undefined {
+  if (!script) return undefined;
+  const slots = [script.type === "before" ? script.slot : undefined, ...(script.scripts ?? []).map(beforeSlot)].filter((slot): slot is number => slot !== undefined);
+  return slots.length ? Math.min(...slots) : undefined;
+}
+
+export function slotToTime(slot: number): string {
+  return new Date((MAINNET_SYSTEM_START + (Number(slot) - MAINNET_BYRON_SLOTS)) * 1000).toISOString();
+}
+
+export function policyState(script: NativeScript | undefined, scriptType: "native" | "plutus" | "unknown") {
+  if (scriptType !== "native") return { requiredSigners: 0, timelock: undefined, mintOpen: false };
+  const requiredSigners = minimumSigners(script);
+  const timelock = beforeSlot(script);
+  const lockOpen = timelock !== undefined && Date.parse(slotToTime(timelock)) > Date.now();
+  return { requiredSigners, timelock, mintOpen: lockOpen || (timelock === undefined && requiredSigners < 2) };
 }
 
 export function analyze(input: string): Promise<RiskReport> {

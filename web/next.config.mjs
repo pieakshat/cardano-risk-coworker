@@ -8,7 +8,7 @@ const nextConfig = {
   transpilePackages: ["engine", "memo"],
   outputFileTracingRoot: repoRoot,
   outputFileTracingIncludes: {
-    "/api/analyze": ["../engine/fixtures/**", "../engine/cache/**"],
+    "/api/analyze": ["../engine/fixtures/**", "../engine/cache/**", "../engine/known-scripts.json"],
     "/api/security": ["../security/bench/results.json"],
   },
   // preflight/ lives outside web/ and Vercel installs only web/node_modules, so imports from there resolve here too.

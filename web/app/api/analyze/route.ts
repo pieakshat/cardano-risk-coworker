@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { NextResponse } from "next/server";
 import { analyze, analyzeWith } from "../../../../engine/engine";
-import { writeMemo } from "../../../../memo";
+import { deterministicMemo, writeMemo } from "../../../../memo";
 
 export const runtime = "nodejs";
 export const maxDuration = 55;
@@ -24,20 +24,26 @@ async function recorded(url: string, init?: RequestInit) {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { input?: unknown };
+  let body: { input?: unknown };
+  try { body = await request.json() as { input?: unknown }; }
+  catch { return NextResponse.json({ error: "Request body must be valid JSON." }, { status: 400 }); }
   const input = typeof body.input === "string" ? body.input.trim() : "";
 
   if (!input) {
     return NextResponse.json({ error: "Enter a token, script address, script hash, or GitHub repository." }, { status: 400 });
   }
 
+  const deadline = Date.now() + 50_000;
   try {
     const work = process.env.RISK_FIXTURES ? analyzeWith(recorded, input) : analyze(input);
     const report = await Promise.race([
       work,
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("ANALYSIS_TIMEOUT")), 50_000)),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("ANALYSIS_TIMEOUT")), Math.max(0, deadline - Date.now()))),
     ]);
-    const memo = await writeMemo(report);
+    const memo = await Promise.race([
+      writeMemo(report),
+      new Promise<{ markdown: string; json: typeof report; author: "template" }>((resolve) => setTimeout(() => resolve({ markdown: deterministicMemo(report), json: report, author: "template" }), Math.max(0, deadline - Date.now()))),
+    ]);
     return NextResponse.json(memo);
   } catch (error) {
     if (error instanceof Error && error.message === "ANALYSIS_TIMEOUT") {
