@@ -77,7 +77,7 @@ const slides: Slide[] = [
     kicker: "PREPROD RUN",
     title: "One seller paid. One refused.",
     lead: "The agent paid the Risk Desk 1 ADA over x402 for each seller, then acted on the verdict.",
-    body: <div className={styles.columns}><Panel title="Seller A: INTERACT">Asks 2 ADA to an established wallet.<br /><br />Risk check <Tx h="fc053ce1c90ce352c944dff8afd5519d422b7995015302f1ea9f4afbc1246a31" /><br />Seller paid <Tx h="3866ed31eb44b4278abfdb897c377e3d69a6d5c9e8649df8a966ba11d252659a" /></Panel><Panel title="Seller B: DO_NOT_INTERACT" accent>Asks 5 tokens under an open mint policy, to an address first seen today.<br /><br />Risk check <Tx h="fad4fce27239cd0850bfa49100bebf00064780e9e908f4b61166d3461784a1ad" /><br />Blocking rule asset-mint-open. Seller not paid.</Panel></div>,
+    body: <div className={styles.columns}><Panel title="Seller A: INTERACT">Asks 2 ADA to an established wallet.<br /><br />Risk check <Tx h="fc053ce1c90ce352c944dff8afd5519d422b7995015302f1ea9f4afbc1246a31" /><br />Seller paid <Tx h="3866ed31eb44b4278abfdb897c377e3d69a6d5c9e8649df8a966ba11d252659a" /></Panel><Panel title="Seller B: DO_NOT_INTERACT" accent>Asks 5 tokens under an open mint policy, to an address first seen today.<br /><br />Risk check <Tx h="fad4fce27239cd0850bfa49100bebf00064780e9e908f4b61166d3461784a1ad" /><br />Blocking rule asset-mint-open. Seller not paid.</Panel><Panel title="Production endpoint">A paid call to the live Vercel endpoint settled on preprod <Tx h="66d28ffbb319d191ee62bc0833af6af031c463604cba5b2121f007ce705dd5ba" /> and returned INTERACT. Replaying the same payment returns 409.</Panel></div>,
   },
   {
     kicker: "THE NETWORK",
