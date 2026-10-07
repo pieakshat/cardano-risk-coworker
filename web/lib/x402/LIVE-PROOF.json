@@ -1,0 +1,10 @@
+{
+  "endpoint": "https://cardano-risk-coworker.vercel.app/api/x402/risk-check",
+  "network": "cardano:preprod",
+  "txId": "66d28ffbb319d191ee62bc0833af6af031c463604cba5b2121f007ce705dd5ba",
+  "paidStatus": 200,
+  "replayStatus": 409,
+  "decision": "INTERACT",
+  "koiosConfirmations": 1,
+  "verifiedAt": "2026-10-07T01:26:02.732Z"
+}
