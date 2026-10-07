@@ -12,10 +12,10 @@ export const EXAMPLES = [
 
 export const STEPS = [
   { at: 0, text: "Looking it up on Cardano" },
-  { at: 3, text: "Reading who can mint or change it" },
-  { at: 7, text: "Checking which wallets hold it" },
-  { at: 12, text: "Checking you can get out: DEX liquidity" },
-  { at: 17, text: "Writing the verdict" },
+  { at: 4, text: "Reading who can mint or change it" },
+  { at: 9, text: "Checking which wallets hold it" },
+  { at: 16, text: "Checking you can get out: DEX liquidity" },
+  { at: 26, text: "Writing the verdict" },
 ] as const;
 
 const CLIENT_TIMEOUT_MS = 58_000;

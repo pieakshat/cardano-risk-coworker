@@ -45,7 +45,7 @@ function Progress({ elapsed, input }: { elapsed: number; input: string }) {
     <section className={styles.progress} aria-live="polite" aria-busy="true" aria-label="Check in progress">
       <div>
         <span className={styles.label}>Checking {input.length > 24 ? `${input.slice(0, 12)}...${input.slice(-6)}` : input}</span>
-        <p className={styles.plain}>Reading Cardano mainnet. This takes about 10 to 25 seconds.</p>
+        <p className={styles.plain}>Reading Cardano mainnet. This takes 10 to 45 seconds.</p>
         <p className={styles.provenance}>{elapsed} second{elapsed === 1 ? "" : "s"} so far</p>
       </div>
       <ol className={styles.steps}>

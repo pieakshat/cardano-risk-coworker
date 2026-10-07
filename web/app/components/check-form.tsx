@@ -32,7 +32,7 @@ export function CheckForm({ input, setInput, loading, error, run, pick }: Props)
           </button>
         ))}
       </div>
-      <p className={styles.formFoot}>Reading Cardano mainnet takes 10 to 25 seconds. Reviewing Aiken source instead? <a href="/security">Open the code review</a>.</p>
+      <p className={styles.formFoot}>Reading Cardano mainnet takes 10 to 45 seconds. Reviewing Aiken source instead? <a href="/security">Open the code review</a>.</p>
     </form>
   );
 }
