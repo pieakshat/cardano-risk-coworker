@@ -56,7 +56,8 @@ export async function submitResult(payment: Payment, result: string): Promise<Pa
   }) });
 }
 
-export async function waitForPayment(payment: Payment, timeoutMs = 10 * 60_000): Promise<Payment> {
+// Wait the full buyer pay window plus 2 minutes: Sokosumi funds escrow up to payByTime, often 10 to 15 minutes in.
+export async function waitForPayment(payment: Payment, timeoutMs = (Number(process.env.MPS_PAY_BY_MINUTES ?? 20) + 2) * 60_000): Promise<Payment> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const current = await json("/payment/resolve-blockchain-identifier", { method: "POST", body: JSON.stringify({
