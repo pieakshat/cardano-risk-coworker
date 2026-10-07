@@ -8,6 +8,12 @@ The first screen takes a token ticker or contract address, runs the three gates 
 
 A short glossary for newcomers: a **mint policy** is the rule inside a Cardano token that says who can create more of it. **x402** is a web payment standard where a server answers `402 Payment Required` with a price and the client pays and retries. **Escrow** is a contract that holds a payment while the work is done; Masumi escrows Sokosumi tasks.
 
+## Architecture
+
+![Cardano Risk Desk architecture: seller sends 402, guardedPay buys a 1 ADA risk-check, preflight and the risk engine read Koios and the native policy, the seller is paid only on INTERACT](web/public/deck/architecture.png)
+
+Interactive version with path tracing and zoom: https://cardano-risk-coworker.vercel.app/deck/architecture.html
+
 ## Integrate in one line
 
 ```ts
