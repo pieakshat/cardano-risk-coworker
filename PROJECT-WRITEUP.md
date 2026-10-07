@@ -8,7 +8,7 @@ An AI agent with a Cardano wallet can now pay anyone. x402 makes it one HTTP rou
 
 On Cardano that question has real answers sitting on chain. A native token's mint policy says who can create more of it. A script address says what code holds the funds. A receiving wallet has a history or it does not. A person checks these by opening an explorer. An agent paying in a loop does not, and it signs whatever the seller asks for.
 
-Cardano Risk Desk is the approval step that sits between an agent's x402 request and its seller payment.
+Cardano Risk Desk is the risk layer for agent-to-agent interaction on Cardano: every time one agent pays, hires or trades with another, it checks the counterparty, the asset and the contract before the wallet signs.
 
 ## What it does
 

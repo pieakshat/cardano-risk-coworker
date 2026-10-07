@@ -1,12 +1,14 @@
 # Cardano Risk Desk
 
-**The approval step before an AI agent pays anyone on Cardano. The agent pays the Risk Desk 1 ADA over x402, gets a verdict backed by chain evidence, and signs the seller payment only when the verdict allows it.**
+**The risk layer for agent-to-agent interaction on Cardano.**
+
+When one agent pays, hires or trades with another, the Risk Desk checks the counterparty first: who controls the token it wants to be paid in, what code holds the funds, whether the receiving wallet has a history, and whether the contract survives an attack. The paying agent buys the verdict for 1 ADA over x402, with the chain evidence behind it, and its wallet signs only when the verdict allows.
 
 [Live app](https://cardano-risk-coworker.vercel.app/) · [Pitch deck](https://cardano-risk-coworker.vercel.app/deck) · Paid API `POST /api/x402/risk-check` · Sokosumi Coworkers **Risk Analyst** (`01a11080-a6c3-7686-abf4-b0d1594cb82b`) and **Aiken Security Reviewer** (`01a11117-ad9f-71a5-a792-45d15c8c9ae0`)
 
 ## The problem
 
-An AI agent with a Cardano wallet can now pay anyone. x402 makes it one HTTP round trip: the seller answers `402 Payment Required` with an amount, an asset and an address, and the agent signs. The seller controls every word of that request, and nothing in the loop asks whether the seller, or the token it wants to be paid in, deserves the money.
+Agents now transact with other agents directly. A buyer agent hires a seller on Sokosumi, pays an x402 API, or settles in a native token, with no human between the request and the signature. x402 makes payment one HTTP round trip: the seller answers `402 Payment Required` with an amount, an asset and an address, and the agent signs. The seller controls every word of that request, and nothing in the loop asks whether the seller, or the token it wants to be paid in, deserves the money.
 
 On Cardano the answers are already on chain. A token's mint policy says who can create more of it. A script address says what code holds the funds. A receiving wallet has a history or it does not. A person checks these in an explorer. An agent paying in a loop signs whatever it is asked to.
 
