@@ -1,6 +1,6 @@
 # Cardano Risk Analyst
 
-Check a Cardano counterparty before your agent pays it.
+An approval step before your agent pays anyone on Cardano.
 
 Live: https://cardano-risk-coworker.vercel.app/
 
