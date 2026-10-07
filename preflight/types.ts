@@ -11,6 +11,7 @@ export type PaymentInput = {
   amount: string;
   resource?: string;
   maxAmount: string;
+  maxAmountAsset?: string;
   maxTimeoutSeconds?: number;
   terms?: Record<string, unknown>;
 };

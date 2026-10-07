@@ -26,3 +26,17 @@ test("confirmed payment replay returns 409 and never assesses again", async () =
   expect(await response.json()).toEqual({ error: "payment_already_used", txId });
   expect(calls).toEqual(["https://preprod.koios.rest/api/v1/tx_status"]);
 });
+
+test("invalid seller terms are rejected before settlement", async () => {
+  resetSettlementStateForTests();
+  const calls: string[] = [];
+  setKoiosFetchForTests(async (input) => { calls.push(String(input)); return new Response("[]", { status: 200 }); });
+  const header = encodePaymentSignatureHeader({ x402Version: 2, payload: { transaction, nonce: "4da34655df9b648f6e73f42b01496e3fd8b95928dfaf99262d3abe34665d23a9#0" } } as never);
+  const response = await POST(new Request("https://example.test/api/x402/risk-check", {
+    method: "POST",
+    headers: { "content-type": "application/json", "payment-signature": header },
+    body: JSON.stringify({ x402: { network: "cardano:preprod", amount: "1.5", payTo: "addr_test1seller" }, paymentRequired: { resource: { url: "http://seller.test/" } } }),
+  }));
+  expect(response.status).toBe(400);
+  expect(calls).toEqual([]);
+});

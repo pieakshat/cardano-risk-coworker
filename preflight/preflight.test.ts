@@ -20,17 +20,17 @@ test("established preprod wallet passes", async () => {
   expect(assessment.evidenceScore).toBe(100);
 });
 
-test("fresh preprod address is conditional", async () => {
-  const assessment = await preflight({ type: "x402_payment", network: "cardano:preprod", payTo: fresh, amount: "2000000", maxAmount: "5000000", resource: "https://seller.example/data", maxTimeoutSeconds: 600 }, { fixtureDir: `${fixtures}/fresh-open` });
+test("fresh payment facts are conditional", async () => {
+  const assessment = await preflight({ type: "x402_payment", network: "cardano:preprod", payTo: established, amount: "2000000", maxAmount: "5000000", resource: "https://seller.example/data", maxTimeoutSeconds: 600 }, { fixtureDir: `${fixtures}/fresh-open` });
   expect(assessment.decision).toBe("INTERACT_WITH_CONDITIONS");
   expect(assessment.blockingReasons).toEqual([]);
   expect(assessment.conditions).toEqual(["counterparty-first-seen", "counterparty-tx-count"]);
 });
 
-test("open-mint asset blocks an otherwise valid payment", async () => {
-  const assessment = await preflight({ type: "x402_payment", network: "cardano:preprod", payTo: fresh, asset: tusdm, amount: "500000", maxAmount: "1000000", resource: "https://seller.example/data", maxTimeoutSeconds: 600 }, { fixtureDir: `${fixtures}/fresh-open` });
-  expect(assessment.decision).toBe("DO_NOT_INTERACT");
-  expect(assessment.blockingReasons).toContain("asset-mint-open");
+test("plutus mint policy is conditional, not blocking", async () => {
+  const assessment = await preflight({ type: "x402_payment", network: "cardano:preprod", payTo: established, asset: tusdm, amount: "500000", maxAmount: "1000000", resource: "https://seller.example/data", maxTimeoutSeconds: 600 }, { fixtureDir: `${fixtures}/fresh-open` });
+  expect(assessment.blockingReasons).not.toContain("asset-mint-open");
+  expect(assessment.conditions).toContain("mint-policy-plutus");
 });
 
 test("amount over cap blocks", async () => {
@@ -48,4 +48,19 @@ test("loopback HTTP is exempt and recorded", async () => {
 test.each(["http://example.com/", "http://127.0.0.1.evil.com/"])("public HTTP resource blocks: %s", async (resource) => {
   const assessment = await preflight({ type: "x402_payment", network: "cardano:preprod", payTo: established, amount: "2000000", maxAmount: "5000000", resource, maxTimeoutSeconds: 600 }, deps);
   expect(assessment.blockingReasons).toContain("resource-not-https");
+});
+
+test("wrong-network payTo blocks before address facts are trusted", async () => {
+  const assessment = await preflight({ type: "x402_payment", network: "cardano:mainnet", payTo: established, amount: "2", maxAmount: "5", resource: "https://seller.example/data", maxTimeoutSeconds: 600 }, deps);
+  expect(assessment.blockingReasons).toContain("payto-invalid");
+});
+
+test("HTTPS scheme parsing is case insensitive", async () => {
+  const assessment = await preflight({ type: "x402_payment", network: "cardano:preprod", payTo: established, amount: "2", maxAmount: "5", resource: "HTTPS://seller.example/data", maxTimeoutSeconds: 600 }, deps);
+  expect(assessment.blockingReasons).not.toContain("resource-not-https");
+});
+
+test("amount cap is not compared across asset units", async () => {
+  const assessment = await preflight({ type: "x402_payment", network: "cardano:preprod", payTo: established, asset: tusdm, amount: "50000000", maxAmount: "1", maxAmountAsset: "lovelace", resource: "https://seller.example/data", maxTimeoutSeconds: 600 }, { fixtureDir: `${fixtures}/fresh-open` });
+  expect(assessment.blockingReasons).not.toContain("amount-over-cap");
 });

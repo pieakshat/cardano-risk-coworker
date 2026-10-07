@@ -1,5 +1,4 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { createHash } from "node:crypto";
 import { decodeCardanoTransaction } from "@x402/cardano";
 import { decodePaymentSignatureHeader, encodePaymentResponseHeader } from "@x402/core/http";
 import { x402Facilitator } from "@x402/core/facilitator";
@@ -7,7 +6,7 @@ import { ExactCardanoScheme } from "@x402/cardano/exact/facilitator";
 import { toFacilitatorCardanoSigner } from "@x402/cardano";
 import { RISK_DESK_PAY_TO } from "./payto";
 
-type StoredDelivery = { assessment: unknown; paymentResponse: unknown };
+export type StoredDelivery = { status: "pending" | "complete"; assessment?: unknown; paymentResponse?: unknown; requirements?: Record<string, unknown>; resource?: unknown };
 export class PaymentAlreadyUsedError extends Error {
   constructor(readonly txId: string) {
     super("payment already used");
@@ -19,6 +18,7 @@ const deliveryPath = "/tmp/cardano-risk-x402-deliveries.json";
 const deliveries = new Map<string, StoredDelivery>();
 let loaded = false;
 let koiosFetch: typeof fetch | undefined;
+const locks = new Map<string, Promise<unknown>>();
 
 async function loadDeliveries(): Promise<void> {
   if (loaded) return;
@@ -36,7 +36,7 @@ async function saveDelivery(txId: string, delivery: StoredDelivery): Promise<voi
   await writeFile(deliveryPath, JSON.stringify(Object.fromEntries(deliveries)), { mode: 0o600 });
 }
 
-function facilitator(): x402Facilitator {
+const facilitatorInstance = (() => {
   const signer = toFacilitatorCardanoSigner({
     network: "cardano:preprod",
     provider: {
@@ -46,9 +46,9 @@ function facilitator(): x402Facilitator {
     awaitConfirmation: true,
   });
   return new x402Facilitator().register("cardano:preprod", new ExactCardanoScheme(signer));
-}
+})();
 
-function txIdFromPayment(header: string): string {
+export function txIdFromPayment(header: string): string {
   const payment = decodePaymentSignatureHeader(header) as { payload?: { transaction?: string } };
   const transaction = payment.payload?.transaction;
   if (!transaction) throw new Error("payment payload has no transaction");
@@ -72,26 +72,20 @@ async function confirmedOnChain(txId: string): Promise<boolean> {
   return Boolean(infoRows[0]?.block_hash || infoRows[0]?.block_height != null);
 }
 
-export function termsHash(requirements: unknown): string {
-  const canonical = JSON.stringify(requirements, (_, value) => {
-    if (!value || typeof value !== "object" || Array.isArray(value)) return value;
-    return Object.fromEntries(Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)));
-  });
-  return createHash("blake2b512").update(canonical).digest("hex").slice(0, 64);
-}
+export { confirmedOnChain };
 
-export async function settleOnce(header: string, requirements: Record<string, unknown>): Promise<{ txId: string; cached?: StoredDelivery; paymentResponse?: unknown }> {
+async function settleOnceUncoordinated(header: string, requirements: Record<string, unknown>): Promise<{ txId: string; cached?: StoredDelivery; paymentResponse?: unknown }> {
   await loadDeliveries();
   const txId = txIdFromPayment(header);
   const cached = deliveries.get(txId);
-  if (cached) throw new PaymentAlreadyUsedError(txId);
+  if (cached?.status === "complete") return { txId, cached };
   if (await confirmedOnChain(txId)) throw new PaymentAlreadyUsedError(txId);
 
   const payment = decodePaymentSignatureHeader(header);
-  const instance = facilitator();
+  const instance = facilitatorInstance;
   const verified = await instance.verify(payment as never, requirements as never);
   if (!verified.isValid) throw new Error(`payment rejected: ${verified.invalidReason ?? "invalid"}`);
-  const deadline = Date.now() + 240_000;
+  const deadline = Date.now() + 35_000;
   for (;;) {
     const settled = await instance.settle(payment as never, requirements as never);
     if (settled.success) return { txId, paymentResponse: settled };
@@ -102,8 +96,34 @@ export async function settleOnce(header: string, requirements: Record<string, un
   }
 }
 
+export async function settleOnce(header: string, requirements: Record<string, unknown>): Promise<{ txId: string; cached?: StoredDelivery; paymentResponse?: unknown }> {
+  const txId = txIdFromPayment(header);
+  const active = locks.get(`settle:${txId}`);
+  if (active) return active as Promise<{ txId: string; cached?: StoredDelivery; paymentResponse?: unknown }>;
+  const run = settleOnceUncoordinated(header, requirements).finally(() => locks.delete(`settle:${txId}`));
+  locks.set(`settle:${txId}`, run);
+  return run;
+}
+
 export async function recordDelivery(txId: string, assessment: unknown, paymentResponse: unknown): Promise<void> {
-  await saveDelivery(txId, { assessment, paymentResponse });
+  await saveDelivery(txId, { status: "complete", assessment, paymentResponse });
+}
+
+export async function recordPending(txId: string, requirements: Record<string, unknown>, resource: unknown): Promise<void> {
+  await saveDelivery(txId, { status: "pending", requirements, resource });
+}
+
+export async function getDelivery(txId: string): Promise<StoredDelivery | undefined> {
+  await loadDeliveries();
+  return deliveries.get(txId);
+}
+
+export function withDeliveryLock<T>(txId: string, work: () => Promise<T>): Promise<T> {
+  const active = locks.get(txId);
+  if (active) return active as Promise<T>;
+  const run = work().finally(() => locks.delete(txId));
+  locks.set(txId, run);
+  return run;
 }
 
 export function setKoiosFetchForTests(fetchImpl: typeof fetch | undefined): void {

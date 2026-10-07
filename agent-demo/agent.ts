@@ -54,7 +54,7 @@ async function main(): Promise<void> {
     const quote = await fetch(seller.url); if (quote.status !== 402) throw new Error(`seller ${seller.name} expected 402, got ${quote.status}`); const quoteBody = await quote.json();
     steps.push({ step: "seller_quote", seller: seller.name, status: quote.status, accepts: quoteBody.accepts });
     const sellerRequirement = quoteBody.accepts?.[0];
-    const riskInput = { target: sellerRequirement?.payTo, x402: sellerRequirement, resource: riskUrl };
+    const riskInput = { target: sellerRequirement?.payTo, x402: sellerRequirement, paymentRequired: quoteBody, maxAmount: sellerRequirement?.amount, resource: quoteBody.resource };
     const riskQuote = await fetch(riskUrl, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(riskInput) });
     if (riskQuote.status !== 402) throw new Error(`risk desk expected 402 for seller ${seller.name}, got ${riskQuote.status}`);
     const riskPayment = await client.createPaymentPayload(await riskQuote.json() as never);
