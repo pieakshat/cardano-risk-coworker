@@ -44,7 +44,9 @@ async function moduleAfter(paths: string[], timeoutMs = 60_000): Promise<RecordV
   while (Date.now() < deadline) {
     for (const path of paths) {
       try { return await import(path) as RecordValue; } catch (error) {
-        if (!(error instanceof Error) || !/Cannot find module|ERR_MODULE_NOT_FOUND/.test(error.message)) throw error;
+        // Bun throws a ResolveMessage (not an Error) for a missing module; read its message either way.
+        const message = String((error as { message?: unknown } | null)?.message ?? error);
+        if (!/Cannot find module|ERR_MODULE_NOT_FOUND/.test(message)) throw error;
       }
     }
     await new Promise((resolve) => setTimeout(resolve, 1_000));

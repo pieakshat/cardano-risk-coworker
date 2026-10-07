@@ -5,8 +5,8 @@ primary_region = "sin"
   dockerfile = "cardano-risk-workers.Dockerfile"
 
 [processes]
-  risk = "bun src/worker.ts"
-  security = "bun ../security/worker/src/worker.ts"
+  risk = "sh -c 'SOKOSUMI_COWORKER_ID=$RISK_SOKOSUMI_COWORKER_ID SOKOSUMI_COWORKER_API_KEY=$RISK_SOKOSUMI_COWORKER_API_KEY MPS_AGENT_IDENTIFIER=$RISK_MPS_AGENT_IDENTIFIER exec bun src/worker.ts'"
+  security = "sh -c 'SOKOSUMI_COWORKER_ID=$SEC_SOKOSUMI_COWORKER_ID SOKOSUMI_COWORKER_API_KEY=$SEC_SOKOSUMI_COWORKER_API_KEY MPS_AGENT_IDENTIFIER=$SEC_MPS_AGENT_IDENTIFIER exec bun ../security/worker/src/worker.ts'"
   server = "bun ../security/worker/src/server.ts"
 
 [http_service]
