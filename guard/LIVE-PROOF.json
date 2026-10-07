@@ -1,0 +1,30 @@
+{
+  "network": "cardano:preprod",
+  "endpoint": "https://cardano-risk-coworker.vercel.app/api/x402/risk-check",
+  "relayerAddress": "addr_test1qqe0seqy6tvff79kw3md5qdspevu59344rcna6fjsut5npeg2wdkgff976cth4upph2h0g9394tl6n0arnwqs307dyaq5lhh68",
+  "results": [
+    {
+      "seller": "A",
+      "paid": true,
+      "verdict": "INTERACT",
+      "riskCheckTx": "312e724c18a137da44f59b9b3b1af47fad7f70492a731d624f7883c174c6e4b3",
+      "sellerTx": "96bbd1de790311b26eca30d5a693695c122a87f18e8c75eb7924b8a24965688c",
+      "riskConfirmations": 5,
+      "sellerConfirmations": 4
+    },
+    {
+      "seller": "B",
+      "paid": false,
+      "verdict": "DO_NOT_INTERACT",
+      "ruleIds": [
+        "asset-mint-open",
+        "counterparty-first-seen",
+        "counterparty-tx-count"
+      ],
+      "riskCheckTx": "ccc263f968b7c88e3d3406ed8f87dca6d0f135f6856b2cef41456792e71cb5f6",
+      "riskConfirmations": 4,
+      "sellerTx": null
+    }
+  ],
+  "verifiedAt": "2026-10-07T05:05:00.000Z"
+}
