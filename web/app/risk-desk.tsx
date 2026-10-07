@@ -29,7 +29,6 @@ type Report = {
   summaryOnly?: boolean;
 };
 type ApiResult = { markdown: string; json: Report } | { error: string };
-type SettlementRun = { status: string; result?: { orderTx: string; fillTx: string; paymentTx: string; quotedInput: string; rate: string; timingsMs: { orderToSubmitted: number; fill: number } } };
 type Gate = { name: string; question: string; state: "pass" | "hold" | "stop" | "idle"; line: string };
 
 // The intent is the framing a user picks; the report underneath is always a real read.
@@ -39,6 +38,15 @@ const INTENTS = [
   { intent: "Add liquidity to this DEX pool", input: "addr1z84q0denmyep98ph3tmzwsmw0j7zau9ljmsqx6a4rvaau66j2c79gy9l76sdg0xwhd7r0c0kna0tycz4y5s6mlenh8pq777e2a" },
   { intent: "Deposit into a contract, source first", input: "https://github.com/Invariant-0/cardano-ctf/tree/main/01_sell_nft" },
 ];
+
+const GUARD_SNIPPET = `import { guardedPay, RefusedPayment } from "@cardano-risk-coworker/guard";
+
+// before
+const paid = await client.createPaymentPayload(paymentRequired);
+// after
+const result = await guardedPay(paymentRequired, { wallet, maxAmount: "2000000" });
+// result.paid is true only after the Risk Desk allows the seller
+// refused payments throw RefusedPayment with ruleIds`;
 
 const DECISION = { LOW: "GO", MEDIUM: "GO, WITH CONDITIONS", HIGH: "STOP" } as const;
 
@@ -102,9 +110,7 @@ export default function RiskDesk() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tick, setTick] = useState(0);
-  const [settlement, setSettlement] = useState<SettlementRun | null>(null);
 
-  useEffect(() => { fetch("/api/settle/latest").then((r) => r.json()).then(setSettlement).catch(() => setSettlement({ status: "unavailable" })); }, []);
   useEffect(() => {
     if (!loading) { setTick(0); return; }
     const timer = window.setInterval(() => setTick((t) => Math.min(t + 1, 2)), 900);
@@ -145,10 +151,10 @@ export default function RiskDesk() {
       <header className={styles.nav}>
         <a className={styles.brand} href="/">Cardano Risk Desk</a>
         <nav className={styles.navLinks}>
-          <a href="#agent">For agents</a>
+          <a href="#guard">For agents</a>
           <a href="/security">Code review</a>
           <a href="/deck">Deck</a>
-          <a className={styles.hire} href="https://preprod.sokosumi.com/coworkers/01a11080-a6c3-7686-abf4-b0d1594cb82b">Hire on Sokosumi</a>
+          <a className={styles.hire} href="https://preprod.sokosumi.com">Hire on Sokosumi</a>
         </nav>
       </header>
 
@@ -189,7 +195,7 @@ export default function RiskDesk() {
         <div>
           <p className={styles.kicker}>Our mainnet measurement</p>
           <h2 id="measurement-title"><span>11</span> of the top 20 have an open mint policy.</h2>
-          <p>Measured from the cached engine report for the tokens in <code>engine/top-tokens.json</code>. An open policy means more supply can be minted.</p>
+          <p>Measured on 6 Oct 2026 from the engine report for the tokens in <code>engine/top-tokens.json</code>. An open policy means more supply can be minted. Time-locked policies such as SNEK&apos;s, closed at slot 90,915,881, read as controlled.</p>
         </div>
         <div className={styles.tokenList} aria-label="Top 20 tokens with open mint policies">
           {OPEN_MINT_TOKENS.map(([ticker, unit]) => <a href={`https://cardanoscan.io/token/${unit}`} key={unit} target="_blank" rel="noreferrer">{ticker}<span>open mint</span></a>)}
@@ -210,6 +216,14 @@ export default function RiskDesk() {
 
       <AgentRun />
 
+      <section className={styles.agent} id="guard" aria-labelledby="guard-title">
+        <div>
+          <span className={styles.kicker}>Integrate in one line</span>
+          <h2 id="guard-title">One guard before the seller signature.</h2>
+          <p>guardedPay pays the Risk Desk, reads the verdict, and signs the seller payment only when the verdict allows it. DO NOT INTERACT never pays the seller. INTERACT WITH CONDITIONS is refused unless you opt in. The same call ran against this production endpoint: Seller A was paid, Seller B received nothing.</p>
+        </div>
+        <pre className={styles.json}>{GUARD_SNIPPET}</pre>
+      </section>
 
       <section className={styles.bench} aria-label="Pre-flight check">
         <div className={styles.callColumn}>
@@ -258,12 +272,10 @@ export default function RiskDesk() {
         <div>
           <span className={styles.kicker}>For agents</span>
           <h2>Your agent gets the same answer as JSON.</h2>
-          <p>Hire the Risk Desk on Sokosumi before any call that moves value. Each read is a paid Task settled through Masumi escrow on Cardano: the result hash goes on chain before the Coworker is paid.</p>
+          <p>Hire the Risk Desk on Sokosumi before any call that moves value, or call the x402 endpoint directly. Every verdict carries the rule ids and the chain reads behind it.</p>
         </div>
         <pre className={styles.json}>{JSON.stringify(agentView(report, intent), null, 2)}</pre>
       </section>
-
-      <Settlement run={settlement} />
 
       <footer className={styles.footer}>
         <span>Reads Koios and Blockfrost mainnet, Minswap pools and the Cardano token registry. Every finding carries the call that produced it.</span>
@@ -327,24 +339,6 @@ function Evidence({ report }: { report: Report }) {
         <summary>{report.sources.length} source calls</summary>
         {report.sources.map((s) => <div key={`${s.call}-${s.at}`}><code>{s.call}</code><time>{s.at}</time></div>)}
       </details>
-    </section>
-  );
-}
-
-function Settlement({ run }: { run: SettlementRun | null }) {
-  const r = run?.result;
-  return (
-    <section className={styles.settle}>
-      <div>
-        <span className={styles.kicker}>Then it can pay for you</span>
-        <h2>Holding the wrong asset is no reason to sign blind.</h2>
-        <p>If the seller asks for an asset your agent does not hold, the Risk Desk quotes the swap against live Minswap reserves, refuses above 3% price impact or on a STOP verdict, then places the order and pays the x402 seller once the batcher fills.</p>
-      </div>
-      <dl className={styles.settleData}>
-        <dt>Latest run</dt>
-        <dd>{r ? `200 from the seller, ${Math.round(r.timingsMs.orderToSubmitted / 1000)} s end to end` : run?.status === "pending" ? "Recording" : "No completed run yet"}</dd>
-        {r && <><dt>Rate</dt><dd>{r.rate}</dd><dt>Transactions</dt><dd className={styles.txs}><a href={`https://preprod.cardanoscan.io/transaction/${r.orderTx}`}>order</a><a href={`https://preprod.cardanoscan.io/transaction/${r.fillTx}`}>fill</a><a href={`https://preprod.cardanoscan.io/transaction/${r.paymentTx}`}>payment</a></dd></>}
-      </dl>
     </section>
   );
 }
