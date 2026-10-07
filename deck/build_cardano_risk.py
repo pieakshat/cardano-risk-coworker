@@ -79,8 +79,8 @@ def footer(s):
 
 
 s = slide()
-text(s, 0.8, 1.45, 11.7, 0.9, "Should my agent pay this", 42, True, INK, PP_ALIGN.CENTER, TITLE)
-text(s, 0.8, 2.35, 11.7, 0.9, "Cardano counterparty?", 42, True, ACCENT, PP_ALIGN.CENTER, TITLE)
+text(s, 0.8, 1.45, 11.7, 0.9, "An approval step before your agent", 42, True, INK, PP_ALIGN.CENTER, TITLE)
+text(s, 0.8, 2.35, 11.7, 0.9, "pays anyone on Cardano.", 42, True, ACCENT, PP_ALIGN.CENTER, TITLE)
 text(s, 1.65, 3.85, 10.0, 0.6, "Cardano Risk Analyst is the paid preflight check before value moves.", 20, False, INK, PP_ALIGN.CENTER)
 text(s, 3.25, 5.25, 6.8, 0.45, "ARROW KEYS TO READ  /  P TO OPEN THE HUMAN UI", 12, True, MUTED, PP_ALIGN.CENTER, MONO)
 text(s, 0.7, 6.95, 11.9, 0.25, "01 / 11", 10, False, MUTED, PP_ALIGN.RIGHT, MONO)
@@ -138,12 +138,13 @@ panel(s, 0.7, 2.45, 5.7, 2.8, "INTERACT", "Script type: plutusV2\nScript size: 3
 panel(s, 6.8, 2.45, 5.8, 2.8, "Source calls", "script_info_ea07b733...\naddress_utxos_addr1z84...\naddress_txs_addr1z84...\nReport: engine/reports/POOL-MINSWAP.json", False, True)
 footer(s)
 
-s = slide(); heading(s, "The agent demo has one safe branch", 10)
-text(s, 0.7, 1.65, 11.7, 0.55, "The execution agent pays a seller only when the assessment is not DO_NOT_INTERACT.", 23)
-panel(s, 0.7, 2.45, 3.75, 2.6, "Seller returns 402", "The agent reads the payment requirements and target.")
-panel(s, 4.8, 2.45, 3.75, 2.6, "Risk Desk returns verdict", "The decision is an Assessment, not a model confidence score.", True)
-panel(s, 8.9, 2.45, 3.75, 2.6, "Agent branches", "INTERACT → pay seller\nCONDITIONS → inspect\nDO NOT INTERACT → refuse")
-text(s, 0.7, 5.55, 11.7, 0.45, "The proof is the branch: evidence changes whether value moves.", 18, True, INK, PP_ALIGN.CENTER)
+s = slide(); heading(s, "One agent paid one seller and refused the other", 10)
+# Source: agent-demo/runs/1791298553018.json and web/lib/x402/LIVE-PROOF.json; hashes confirmed by Koios preprod tx_status.
+text(s, 0.7, 1.65, 11.7, 0.55, "Before paying either seller, the agent paid the Risk Desk 1 ADA over x402 and acted on the verdict.", 21)
+panel(s, 0.7, 2.45, 3.75, 2.9, "Seller A  /  INTERACT", "Asks 2 ADA\nWallet: 27 txs since 5 Oct\nRisk check fc053ce1...\nPaid 3866ed31...", True)
+panel(s, 4.8, 2.45, 3.75, 2.9, "Seller B  /  DO NOT INTERACT", "Asks 5 units of an open-mint token\nAddress: 1 tx, first seen that day\nRisk check fad4fce2...\nNot paid: asset-mint-open")
+panel(s, 8.9, 2.45, 3.75, 2.9, "Production endpoint", "Live Vercel x402 call\nPayment 66d28ffb...\nVerdict INTERACT, HTTP 200\nSame payment replayed: 409", False, True)
+text(s, 0.7, 5.75, 11.7, 0.45, "The proof is the branch: evidence decides whether value moves.", 18, True, INK, PP_ALIGN.CENTER)
 footer(s)
 
 s = slide(); heading(s, "Why Cardano and Masumi", 11)
