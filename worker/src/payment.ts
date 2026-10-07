@@ -28,19 +28,23 @@ function blockchainIdentifier(payment: Payment): string {
 export async function createPayment(input: string): Promise<Payment> {
   const now = Date.now();
   const minutes = (name: string, fallback: number) => Number(env(name, String(fallback))) * 60_000;
-  return json("/payment", { method: "POST", body: JSON.stringify({
+  const identifierFromPurchaser = randomBytes(10).toString("hex");
+  const payment = await json("/payment", { method: "POST", body: JSON.stringify({
     network: "Preprod",
     paymentSourceType: env("MPS_PAYMENT_SOURCE_TYPE", "Web3CardanoV2"),
     supportedPaymentSourceIndex: Number(env("MPS_PAYMENT_SOURCE_INDEX", "0")),
     agentIdentifier: env("MPS_AGENT_IDENTIFIER"),
     inputHash: sha256(input),
-    identifierFromPurchaser: randomBytes(10).toString("hex"),
-    RequestedFunds: [{ amount: env("MPS_TASK_AMOUNT", "1000000"), unit: env("MPS_TASK_UNIT", "") }],
+    identifierFromPurchaser,
     payByTime: new Date(now + minutes("MPS_PAY_BY_MINUTES", 20)).toISOString(),
     submitResultTime: new Date(now + minutes("MPS_SUBMIT_RESULT_MINUTES", 45)).toISOString(),
     unlockTime: new Date(now + minutes("MPS_UNLOCK_MINUTES", 60)).toISOString(),
     externalDisputeUnlockTime: new Date(now + minutes("MPS_EXTERNAL_DISPUTE_MINUTES", 75)).toISOString(),
   }) });
+  const data = payment.data && typeof payment.data === "object" ? payment.data as Payment : payment;
+  const funds = Array.isArray(data.RequestedFunds) ? data.RequestedFunds : [];
+  const sellerVkey = (data.SmartContractWallet as Payment | undefined)?.walletVkey;
+  return { ...payment, data: { ...data, network: "Preprod", identifierFromPurchaser, sellerVkey, Amounts: funds, supportedPaymentSourceIndex: Number(env("MPS_PAYMENT_SOURCE_INDEX", "0")) } };
 }
 
 export async function submitResult(payment: Payment, result: string): Promise<Payment> {

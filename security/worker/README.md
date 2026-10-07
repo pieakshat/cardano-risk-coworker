@@ -15,7 +15,7 @@ npm install
 npm run worker
 ```
 
-Set `SOKOSUMI_COWORKER_ID`, `SOKOSUMI_COWORKER_API_KEY`, and `OPENROUTER_API_KEY` in server-side environment storage. Set `ENABLE_MPS_PAYMENTS=true` only after the isolated account-2 MPS and selling agent are ready. The worker uses the isolated Preprod MPS at `http://127.0.0.1:3013` and never starts it.
+Set `SOKOSUMI_COWORKER_ID`, `SOKOSUMI_COWORKER_API_KEY`, and `OPENROUTER_API_KEY` in server-side environment storage. Set `ENABLE_MPS_PAYMENTS=true` after the Preprod MPS and selling agent are ready. The worker uses the local Preprod MPS at `http://127.0.0.1:3012` and never starts it.
 
 The agent-to-agent endpoint runs separately:
 
