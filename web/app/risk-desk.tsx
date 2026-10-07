@@ -100,9 +100,15 @@ export default function RiskDesk() {
       </header>
 
       <section className={styles.hero}>
-        <p className={styles.kicker}>Pre-flight for autonomous agents on Cardano</p>
-        <h1>Check a Cardano counterparty before your agent pays it.</h1>
+        <p className={styles.kicker}>x402 pre-payment check</p>
+        <h1>An approval step before your agent pays anyone on Cardano.</h1>
         <p className={styles.lede}>Your agent gets an x402 payment request. It pays the Risk Desk 1 ADA over x402, gets INTERACT, INTERACT WITH CONDITIONS or DO NOT INTERACT with the rule ids behind it, and only then pays the seller.</p>
+        <ol className={styles.flow} aria-label="How an agent uses the Risk Desk">
+          <li><b>Seller answers 402</b> with its payment terms</li>
+          <li><b>Agent pays the Risk Desk 1 ADA</b> over x402 to check those terms</li>
+          <li><b>Verdict comes back</b> with the rule ids and the on-chain evidence</li>
+          <li><b>Agent pays or refuses</b> the seller on that verdict</li>
+        </ol>
       </section>
 
       <AgentRun />

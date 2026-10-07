@@ -108,3 +108,8 @@
   .findingList article span { grid-row: auto; }
 }
 @media (prefers-reduced-motion: reduce) { .gates li, .verdict { transition: none; } }
+.flow { margin: 28px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 4px solid var(--color-ink); counter-reset: step; }
+.flow li { min-width: 0; padding: 14px 18px 0 0; font: 400 14px/1.5 var(--font-body); color: var(--color-ink-2); counter-increment: step; }
+.flow li::before { content: counter(step); display: block; margin-bottom: 6px; font: 600 13px/1 var(--font-mono); color: var(--color-accent-deep); }
+.flow b { display: block; font-weight: 600; color: var(--color-ink); }
+@media (max-width: 760px) { .flow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); row-gap: 16px; } }
