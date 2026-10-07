@@ -19,12 +19,13 @@ import knownScripts from "./known-scripts.json";
 const CACHE_DIR = process.env.VERCEL ? "/tmp/risk-engine-cache/" : `${process.cwd().endsWith("/web") ? pathResolve(process.cwd(), "../engine/cache") : pathResolve(process.cwd(), "engine/cache")}/`;
 const CACHE_TTL_MS = 6 * 3600_000;
 // The repo cache ships with the Vercel bundle (outputFileTracingIncludes); /tmp starts empty on every cold instance.
-const BUNDLED_CACHE_DIR = `${process.cwd().endsWith("/web") ? pathResolve(process.cwd(), "../engine/cache") : pathResolve(process.cwd(), "engine/cache")}/`;
+// Next.js (web/) bundles from the repo cwd; workers run from worker/ or security/worker/, so also try the module directory.
+const BUNDLED_CACHE_DIRS = [`${process.cwd().endsWith("/web") ? pathResolve(process.cwd(), "../engine/cache") : pathResolve(process.cwd(), "engine/cache")}/`, `${pathResolve(process.cwd(), "../engine/cache")}/`, `${pathResolve(process.cwd(), "../../engine/cache")}/`];
 const readCache = (file: string): { at: number; body: unknown } | null => { try { return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : null; } catch { return null; } };
 const json = async (fetcher: Fetcher, url: string, init?: RequestInit) => {
   const key = createHash("sha256").update(url + String(init?.body ?? "")).digest("hex").slice(0, 32);
   const file = `${CACHE_DIR}${key}.json`;
-  const hit = fetcher === fetch ? readCache(file) ?? readCache(`${BUNDLED_CACHE_DIR}${key}.json`) : null;
+  const hit = fetcher === fetch ? readCache(file) ?? BUNDLED_CACHE_DIRS.map((dir) => readCache(`${dir}${key}.json`)).find(Boolean) ?? null : null;
   if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.body;
   const slow = url.includes("/asset_addresses");
   try {
