@@ -8,7 +8,7 @@ const mps = (path: string, init: RequestInit = {}) => {
   return fetch(`${base}${path}`, {
   ...init,
   headers: { "content-type": "application/json", token: env("MPS_API_TOKEN"), ...(init.headers ?? {}) },
-  signal: AbortSignal.timeout(20_000),
+  signal: AbortSignal.timeout(Number(process.env.MPS_TIMEOUT_MS ?? 60_000)),
   });
 };
 
