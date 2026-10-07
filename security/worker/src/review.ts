@@ -66,11 +66,13 @@ export async function review(input: string): Promise<{ report: string; tests: st
     const exploitModule = await moduleAfter(["../../exploit/index.ts", "../../exploit/exploit.ts"]);
     const scan = scanModule.scan as (dir: string) => Candidate[] | Promise<Candidate[]>;
     const confirm = exploitModule.confirm as (dir: string, candidate: Candidate) => Confirmation | Promise<Confirmation>;
-    const candidates = await scan(target.path ? `${projectDir}/${target.path}` : projectDir);
+    // The Aiken project may live in a subdirectory of the repo; scan and exploit must both use it.
+    const aikenDir = target.path ? `${projectDir}/${target.path}` : projectDir;
+    const candidates = await scan(aikenDir);
     const confirmed: Confirmation[] = [];
     const needsReview: Candidate[] = [];
     for (const candidate of candidates) {
-      const result = await confirm(projectDir, candidate);
+      const result = await confirm(aikenDir, candidate);
       if (String(result.status ?? result.state ?? "").toUpperCase() === "CONFIRMED") confirmed.push(result);
       else needsReview.push({ ...candidate, status: "needs review" });
     }
