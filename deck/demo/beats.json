@@ -1,0 +1,43 @@
+[
+  {
+    "id": 1,
+    "text": "An approval step before your agent pays anyone on Cardano. The agent receives an x402 payment request, pays the Risk Desk 1 ADA to inspect the counterparty, and follows the returned verdict before paying the seller.",
+    "scenes": [{"url": "https://cardano-risk-coworker.vercel.app/", "target": "An approval step before your agent pays anyone on Cardano.", "share": 1}]
+  },
+  {
+    "id": 2,
+    "text": "Seller A asks 2 ADA. The receiving wallet has 27 transactions since 5 October. The agent pays the Risk Desk, receives INTERACT, and sends the seller payment.",
+    "scenes": [
+      {"url": "https://cardano-risk-coworker.vercel.app/", "target": "Seller A", "share": 0.55},
+      {"url": "https://preprod.cardanoscan.io/transaction/fc053ce1c90ce352c944dff8afd5519d422b7995015302f1ea9f4afbc1246a31", "share": 0.20},
+      {"url": "https://preprod.cardanoscan.io/transaction/3866ed31eb44b4278abfdb897c377e3d69a6d5c9e8649df8a966ba11d252659a", "share": 0.25}
+    ]
+  },
+  {
+    "id": 3,
+    "text": "Seller B requests payment in a token whose mint policy is still open. Its receiving address has 1 transaction and was first seen that day. The Risk Desk returns DO_NOT_INTERACT with the blocking rule asset-mint-open. The agent sends no seller payment.",
+    "scenes": [
+      {"url": "https://cardano-risk-coworker.vercel.app/", "target": "Seller B", "share": 0.65},
+      {"url": "https://preprod.cardanoscan.io/transaction/fad4fce27239cd0850bfa49100bebf00064780e9e908f4b61166d3461784a1ad", "share": 0.35}
+    ]
+  },
+  {
+    "id": 4,
+    "text": "The agent does not read a dashboard. It gets a paid JSON answer. The three gates ask who controls the counterparty, whether the code surface is safe, and whether value can get in and out. The result carries the rule ids and the evidence calls that produced them.",
+    "scenes": [
+      {"url": "https://cardano-risk-coworker.vercel.app/", "target": "Your agent gets the same answer as JSON.", "share": 0.45},
+      {"url": "https://cardano-risk-coworker.vercel.app/", "target": "Who controls it", "share": 0.20},
+      {"url": "https://cardano-risk-coworker.vercel.app/", "target": "Is the code safe", "share": 0.15},
+      {"url": "https://cardano-risk-coworker.vercel.app/", "target": "Can you get in and out", "share": 0.20}
+    ]
+  },
+  {
+    "id": 5,
+    "text": "One agent, two sellers, one disciplined payment path. Risk Desk is a paid Coworker over x402. Masumi records the task result on Cardano. The agent pays the seller only after the counterparty decision says it can.",
+    "scenes": [
+      {"url": "https://cardano-risk-coworker.vercel.app/", "target": "Each read is a paid Task settled through Masumi escrow on Cardano", "share": 0.45},
+      {"url": "https://cardano-risk-coworker.vercel.app/", "target": "Seller A", "share": 0.30},
+      {"url": "https://cardano-risk-coworker.vercel.app/", "target": "An approval step before your agent pays anyone on Cardano.", "share": 0.25}
+    ]
+  }
+]

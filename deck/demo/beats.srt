@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:13,406
+An approval step before your agent pays anyone on Cardano. The agent receives an x402 payment request, pays the Risk Desk 1 ADA to inspect the counterparty, and follows the returned verdict before paying the seller.
+
+2
+00:00:13,406 --> 00:00:24,125
+Seller A asks 2 ADA. The receiving wallet has 27 transactions since 5 October. The agent pays the Risk Desk, receives INTERACT, and sends the seller payment.
+
+3
+00:00:24,125 --> 00:00:38,397
+Seller B requests payment in a token whose mint policy is still open. Its receiving address has 1 transaction and was first seen that day. The Risk Desk returns DO_NOT_INTERACT with the blocking rule asset-mint-open. The agent sends no seller payment.
+
+4
+00:00:38,397 --> 00:00:52,873
+The agent does not read a dashboard. It gets a paid JSON answer. The three gates ask who controls the counterparty, whether the code surface is safe, and whether value can get in and out. The result carries the rule ids and the evidence calls that produced them.
+
+5
+00:00:52,873 --> 00:01:07,248
+One agent, two sellers, one disciplined payment path. Risk Desk is a paid Coworker over x402. Masumi records the task result on Cardano. The agent pays the seller only after the counterparty decision says it can.
