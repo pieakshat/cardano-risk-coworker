@@ -73,7 +73,7 @@ export async function review(input: string): Promise<{ report: string; tests: st
     const needsReview: Candidate[] = [];
     for (const candidate of candidates) {
       const result = await confirm(aikenDir, candidate);
-      if (String(result.status ?? result.state ?? "").toUpperCase() === "CONFIRMED") confirmed.push(result);
+      if (String(result.status ?? result.state ?? "").toUpperCase() === "CONFIRMED") confirmed.push({ ...result, candidate: result.candidate ?? candidate });
       else needsReview.push({ ...candidate, status: "needs review" });
     }
     const tests = confirmed.map((item) => String(item.testSource ?? item.test ?? "")).filter(Boolean).join("\n\n");
