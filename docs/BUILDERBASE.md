@@ -54,5 +54,6 @@ Both transactions returned a confirmed record from Koios preprod `tx_status` on 
 | --- | --- | ---: | --- |
 | Risk Analyst `01a1152f-6ac1-76c8-b245-b0bccff73ee2`, Masumi escrow payment | MIN, verdict `DO NOT INTERACT` | 477 | [d429727560...ad1b9dd7](https://preprod.cardanoscan.io/transaction/d429727560321bf615a15c0a917c8dc09acc7edd9f378f77b2e81d2bad1b9dd7) |
 | Risk Analyst `01a1152f-6ac1-76c8-b245-b0bccff73ee2`, result submitted on chain | MIN, verdict `DO NOT INTERACT` | 448 | [7748d93243...a45b1d7119](https://preprod.cardanoscan.io/transaction/7748d9324313b70e3483a17df763f180d6afdc60783b69d811a228a45b1d7119) |
+| Risk Analyst `01a1152f-6ac1-76c8-b245-b0bccff73ee2`, seller collected the escrow | MIN, verdict `DO NOT INTERACT` | 373 | [a07abc234d...499a174b](https://preprod.cardanoscan.io/transaction/a07abc234d2c90f895f7df48dd736dd4711ce234d0053f42e214d675499a174b) |
 
 The Security Reviewer task `01a11579-9cce-70dd-86bd-9da3a5772a31` ran on [Invariant-0/cardano-ctf `01_sell_nft`](https://github.com/Invariant-0/cardano-ctf/tree/main/01_sell_nft) and returned a `CONFIRMED` double-satisfaction exploit: one payment satisfies two script inputs. The exploit test passes on the contract and fails on a patched contract.
