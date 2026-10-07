@@ -59,10 +59,11 @@ export async function waitForPayment(payment: Payment, timeoutMs = (Number(proce
   while (Date.now() < deadline) {
     // A transient payment-service error is retried until the deadline instead of failing the paid task.
     let current: Awaited<ReturnType<typeof json>>;
-    try { current = await json("/payment/resolve-blockchain-identifier", { method: "POST", body: JSON.stringify({ }
-    catch (error) { if (error instanceof Error && /HTTP 4\d\d/.test(error.message)) throw error; console.error(`MPS poll retry: ${error instanceof Error ? error.message : error}`); await new Promise((resolve) => setTimeout(resolve, 10_000)); continue; }
-      network: "Preprod", blockchainIdentifier: blockchainIdentifier(payment), includeHistory: "true",
-    }) });
+    try {
+      current = await json("/payment/resolve-blockchain-identifier", { method: "POST", body: JSON.stringify({
+        network: "Preprod", blockchainIdentifier: blockchainIdentifier(payment), includeHistory: "true",
+      }) });
+    } catch (error) { if (error instanceof Error && /HTTP 4\d\d/.test(error.message)) throw error; console.error(`MPS poll retry: ${error instanceof Error ? error.message : error}`); await new Promise((resolve) => setTimeout(resolve, 10_000)); continue; }
     const state = String(((current.data ?? current) as Payment).onChainState ?? "");
     if (["FundsLocked", "ResultSubmitted", "WithdrawAuthorized", "Withdrawn", "DisputedWithdrawn"].includes(state)) return current;
     if (["RefundWithdrawn", "FundsOrDatumInvalid"].includes(state)) throw new Error(`MPS payment terminal state ${state}`);
