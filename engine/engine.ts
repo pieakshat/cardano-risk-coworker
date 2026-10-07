@@ -18,19 +18,26 @@ import knownScripts from "./known-scripts.json";
 // ponytail: file cache keyed by URL+body, 6h TTL; Koios asset_addresses takes ~55 s for large tokens (measured on MIN), so repeat Tasks must not refetch
 const CACHE_DIR = process.env.VERCEL ? "/tmp/risk-engine-cache/" : `${process.cwd().endsWith("/web") ? pathResolve(process.cwd(), "../engine/cache") : pathResolve(process.cwd(), "engine/cache")}/`;
 const CACHE_TTL_MS = 6 * 3600_000;
+// The repo cache ships with the Vercel bundle (outputFileTracingIncludes); /tmp starts empty on every cold instance.
+const BUNDLED_CACHE_DIR = `${process.cwd().endsWith("/web") ? pathResolve(process.cwd(), "../engine/cache") : pathResolve(process.cwd(), "engine/cache")}/`;
+const readCache = (file: string): { at: number; body: unknown } | null => { try { return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : null; } catch { return null; } };
 const json = async (fetcher: Fetcher, url: string, init?: RequestInit) => {
   const key = createHash("sha256").update(url + String(init?.body ?? "")).digest("hex").slice(0, 32);
   const file = `${CACHE_DIR}${key}.json`;
-  if (fetcher === fetch && existsSync(file)) {
-    const hit = JSON.parse(readFileSync(file, "utf8"));
-    if (Date.now() - hit.at < CACHE_TTL_MS) return hit.body;
-  }
+  const hit = fetcher === fetch ? readCache(file) ?? readCache(`${BUNDLED_CACHE_DIR}${key}.json`) : null;
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.body;
   const slow = url.includes("/asset_addresses");
-  const response = await fetcher(url, { ...init, signal: AbortSignal.timeout(slow ? 120_000 : 30_000) });
-  if (!response.ok) throw new Error(`${url} returned HTTP ${response.status}`);
-  const body = await response.json();
-  if (fetcher === fetch) { mkdirSync(CACHE_DIR, { recursive: true }); writeFileSync(file, JSON.stringify({ at: Date.now(), body })); }
-  return body;
+  try {
+    const response = await fetcher(url, { ...init, signal: AbortSignal.timeout(slow ? 120_000 : 30_000) });
+    if (!response.ok) throw new Error(`${url} returned HTTP ${response.status}`);
+    const body = await response.json();
+    if (fetcher === fetch) { mkdirSync(CACHE_DIR, { recursive: true }); writeFileSync(file, JSON.stringify({ at: Date.now(), body })); }
+    return body;
+  } catch (error) {
+    // ponytail: stale-if-error; a slow or failing upstream serves the last observed answer instead of failing the whole analysis.
+    if (hit) { console.warn(`stale cache for ${url.split("?")[0]} from ${new Date(hit.at).toISOString()}: ${error instanceof Error ? error.message : error}`); return hit.body; }
+    throw error;
+  }
 };
 
 function hexAscii(value: string): string {
