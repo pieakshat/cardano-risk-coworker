@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { encodePaymentRequiredHeader, encodePaymentResponseHeader } from "@x402/core/http";
 import { assessRisk } from "../../../../lib/x402/risk";
-import { recordDelivery, RISK_DESK_PAY_TO, settleOnce } from "../../../../lib/x402/settlement";
+import { PaymentAlreadyUsedError, recordDelivery, RISK_DESK_PAY_TO, settleOnce } from "../../../../lib/x402/settlement";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -48,6 +48,9 @@ export async function POST(request: Request) {
     await recordDelivery(settled.txId, assessment, settled.paymentResponse);
     return NextResponse.json(assessment, { headers: { "PAYMENT-RESPONSE": encodePaymentResponseHeader(settled.paymentResponse as never) } });
   } catch (error) {
+    if (error instanceof PaymentAlreadyUsedError) {
+      return NextResponse.json({ error: "payment_already_used", txId: error.txId }, { status: 409 });
+    }
     console.error("x402 risk check failed", error);
     return NextResponse.json({ error: "payment or risk check failed" }, { status: 502 });
   }
